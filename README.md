@@ -71,8 +71,8 @@
         // ==========================================
         //   ⚙️ 填寫您的 LIFF 與 GAS 連動資訊
         // ==========================================
-        const LIFF_ID = "請填入您的_LIFF_ID";
-        const GAS_WEB_APP_URL = "請在此貼上剛才第二步生成的_GAS_網頁應用程式網址";
+        const LIFF_ID = "2008845693-L2SUJz8X";
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztBUpKu11R_cPzDsRMLgzkbkdheqjNO7PqMon94X67Zx5ZTXRHq13lk0xg2NSVHSI-/exec";
 
         let studentDataList = [];
         let currentUserId = "";
