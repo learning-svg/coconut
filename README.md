@@ -4,326 +4,219 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>椰菲英文 - 專屬學習儀表板</title>
-    
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* ==========================================
-           🎨 視覺設計：簡約線條 (Simple Line Art) 風格
-           ========================================== */
-        :root {
-            --primary-color: #E63946; /* 椰菲紅 / 警示紅 */
-            --bg-color: #F8F9FA;
-            --card-bg: #FFFFFF;
-            --text-main: #333333;
-            --text-muted: #6C757D;
-            --border-color: #2B2D42; /* 深色細線條外框 */
-            --bubble-bg: #E8F1F2; /* 輕盈的淺藍色回饋框 */
-        }
-
+        :root { --primary-color: #E63946; --bg-color: #F8F9FA; --card-bg: #FFFFFF; --text-main: #333333; --text-muted: #6C757D; --border-color: #2B2D42; --bubble-bg: #E8F1F2; }
         * { box-sizing: border-box; font-family: 'Noto Sans TC', sans-serif; }
         body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-main); }
-
-        /* 載入畫面 */
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 9999;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid rgba(0,0,0,0.1);
-            border-top-color: var(--border-color); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 15px;
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(0,0,0,0.1); border-top-color: var(--border-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* 頂部頁籤 (Tabs) */
         .header { background: var(--card-bg); border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 100; padding-top: 15px;}
         .tabs-container { display: flex; overflow-x: auto; padding: 0 15px; gap: 10px; scrollbar-width: none; }
-        .tab {
-            padding: 10px 20px; font-weight: bold; font-size: 16px; border: 2px solid transparent;
-            border-bottom: none; border-radius: 12px 12px 0 0; cursor: pointer; color: var(--text-muted);
-            transition: all 0.2s; white-space: nowrap;
-        }
-        .tab.active {
-            color: var(--text-main); border-color: var(--border-color); background: var(--card-bg);
-            border-bottom: 2px solid var(--card-bg); margin-bottom: -2px; /* 蓋住底線的視覺巧思 */
-        }
-
-        /* 內容區塊 */
+        .tab { padding: 10px 20px; font-weight: bold; font-size: 16px; border: 2px solid transparent; border-bottom: none; border-radius: 12px 12px 0 0; cursor: pointer; color: var(--text-muted); transition: all 0.2s; white-space: nowrap; }
+        .tab.active { color: var(--text-main); border-color: var(--border-color); background: var(--card-bg); border-bottom: 2px solid var(--card-bg); margin-bottom: -2px; }
         .content-container { padding: 20px 15px; display: none; }
-        
         .student-summary { text-align: center; margin-bottom: 20px; }
         .student-summary h2 { margin: 0 0 5px 0; font-size: 22px; }
         .badge-pill { display: inline-block; padding: 5px 12px; border: 1.5px solid var(--border-color); border-radius: 20px; font-size: 14px; font-weight: bold;}
-
-        /* 卡片共用樣式 */
-        .card {
-            background: var(--card-bg); border: 1.5px solid var(--border-color);
-            border-radius: 12px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 2px 4px 0px rgba(0,0,0,0.05); /* 微微的漫畫風陰影 */
-        }
+        .card { background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 2px 4px 0px rgba(0,0,0,0.05); }
         .card-title { margin-top: 0; margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 8px;}
-
-        /* 上次進度區塊 */
         .material-text { font-weight: bold; font-size: 16px; margin-bottom: 15px; }
-        .feedback-bubble {
-            background: var(--bubble-bg); padding: 15px; border-radius: 0 12px 12px 12px;
-            border: 1px solid var(--border-color); margin-bottom: 15px; line-height: 1.5;
-        }
-        .homework-box {
-            display: flex; align-items: flex-start; gap: 10px; padding-top: 15px;
-            border-top: 1px dashed var(--border-color);
-        }
+        .feedback-bubble { background: var(--bubble-bg); padding: 15px; border-radius: 0 12px 12px 12px; border: 1px solid var(--border-color); margin-bottom: 15px; line-height: 1.5; }
+        .homework-box { display: flex; align-items: flex-start; gap: 10px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
         .hw-badge { background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; white-space: nowrap;}
         .hw-content { font-size: 15px; line-height: 1.4; word-break: break-all; }
         .hw-content a { color: var(--primary-color); font-weight: bold; text-decoration: underline; }
-
-        /* 課表清單區塊 */
-        .class-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 0; border-bottom: 1px solid #EEEEEE;
-        }
-        .class-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .class-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #EEEEEE; }
         .class-info { display: flex; flex-direction: column; gap: 4px; }
         .class-date { font-weight: bold; font-size: 16px; }
         .class-type { font-size: 14px; color: var(--text-muted); }
-        
-        /* 請假按鈕 */
-        .btn-cancel {
-            background: white; border: 1.5px solid var(--border-color); color: var(--primary-color);
-            padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer;
-            transition: 0.2s; white-space: nowrap;
-        }
-        .btn-cancel:active { background: #f0f0f0; }
-        .btn-cancel:disabled, .btn-cancel.disabled {
-            background: #E9ECEF; border-color: #CED4DA; color: #6C757D; cursor: not-allowed;
-        }
+        .btn-cancel { background: white; border: 1.5px solid var(--border-color); color: var(--primary-color); padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap;}
+        .btn-cancel:disabled { background: #E9ECEF; border-color: #CED4DA; color: #6C757D; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <div id="loading-text">正在載入專屬資料...</div>
-    </div>
-
-    <div class="header" id="header" style="display: none;">
-        <div class="tabs-container" id="tabs-container">
-            </div>
-    </div>
+    <div id="loading-screen"><div class="spinner"></div><div id="loading-text">正在載入專屬學習儀表板...</div></div>
+    <div class="header" id="header" style="display: none;"><div class="tabs-container" id="tabs-container"></div></div>
 
     <div class="content-container" id="main-content">
-        
-        <div class="student-summary">
-            <h2 id="display-name">學生姓名</h2>
-            <div class="badge-pill" id="display-remaining">剩餘堂數：- 堂</div>
-        </div>
+        <div class="student-summary"><h2 id="display-name">學生姓名</h2><div class="badge-pill" id="display-remaining">剩餘堂數：- 堂</div></div>
 
         <div class="card">
             <h3 class="card-title">🚀 上次上課進度</h3>
             <div class="material-text">📚 目前教材：<span id="display-material">載入中...</span></div>
             <div class="feedback-bubble">
-                <strong>💡 老師回饋：</strong><br>
-                <span id="display-feedback">載入中...</span>
+                <div style="font-style: italic; color: #555555; margin-bottom: 10px; font-size: 14px; word-break: break-word;">🇺🇸 <span id="display-feedback-en">Loading...</span></div>
+                <div style="font-weight: bold; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 15px; word-break: break-word;">🇹🇼 <span id="display-feedback-zh">載入中...</span></div>
             </div>
-            
-            <div class="homework-box" id="homework-container">
-                <div class="hw-badge">待完成</div>
-                <div class="hw-content" id="display-homework"></div>
-            </div>
+            <div class="homework-box" id="homework-container"><div class="hw-badge">課後作業</div><div class="hw-content" id="display-homework"></div></div>
         </div>
 
-        <div class="card">
-            <h3 class="card-title">📅 未來兩週課表</h3>
-            <div id="upcoming-list">
-                </div>
+        <div class="card" style="background-color: #FAFAFA;">
+            <h3 class="card-title">📤 繳交作業 / 留言給授課老師</h3>
+            <textarea id="hw-message" placeholder="老師好，這是我的功課 (Teacher, this is my homework...)" style="width: 100%; height: 70px; margin-bottom: 15px; border-radius: 8px; border: 1.5px solid var(--border-color); padding: 10px; font-size: 14px; resize: none;"></textarea>
+            <input type="file" id="hw-file" style="margin-bottom: 15px; width: 100%; font-size: 14px;" accept="image/*,.pdf,.mp3">
+            <button class="btn-cancel" style="width: 100%; background-color: var(--primary-color); color: white;" onclick="submitHomeworkToTeacher()">安全送出給老師</button>
         </div>
+
+        <div class="card"><h3 class="card-title">📅 未來兩週課表</h3><div id="upcoming-list"></div></div>
     </div>
 
     <script>
         // ==========================================
-        //   ⚙️ 核心設定區 (請填入您的資料)
+        //   ⚙️ 填寫您的 LIFF 與 GAS 連動資訊
         // ==========================================
-        const LIFF_ID = "請在此填寫您的_LIFF_ID"; 
-        const GAS_WEB_APP_URL = "請在此填寫您的_GAS_網頁應用程式網址_部署後的URL";
+        const LIFF_ID = "2008845693-L2SUJz8X";
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztBUpKu11R_cPzDsRMLgzkbkdheqjNO7PqMon94X67Zx5ZTXRHq13lk0xg2NSVHSI-/exec";
 
-        let studentDataList = []; // 儲存從後端抓來的所有學生資料
+        let studentDataList = [];
         let currentUserId = "";
+        let currentTabIndex = 0;
 
-        // ==========================================
-        //   🚀 初始化與資料抓取
-        // ==========================================
         async function initializeApp() {
             try {
                 await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-                const profile = await liff.getProfile();
-                currentUserId = profile.userId;
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                currentUserId = (await liff.getProfile()).userId;
                 fetchDashboardData(currentUserId);
-            } catch (err) {
-                showError("LIFF 初始化失敗，請確認在 LINE 內開啟。");
-            }
+            } catch (err) { document.getElementById('loading-text').innerText = "LIFF 初始化失敗，請在 LINE 內開啟。"; }
         }
 
         async function fetchDashboardData(userId) {
             try {
                 const response = await fetch(`${GAS_WEB_APP_URL}?action=getDashboard&userId=${userId}`);
                 const result = await response.json();
-                
                 if (result.status === 'success' && result.data.length > 0) {
                     studentDataList = result.data;
-                    renderTabs();
-                    renderStudentData(0); // 預設顯示第一位學生的資料
-                    
+                    renderTabs(); renderStudentData(0);
                     document.getElementById('loading-screen').style.display = 'none';
                     document.getElementById('header').style.display = 'block';
                     document.getElementById('main-content').style.display = 'block';
-                } else {
-                    showError("找不到您的專屬課程資料，請確認是否已綁定。");
-                }
-            } catch (err) {
-                showError("讀取資料失敗，請稍後再試或聯繫客服。");
-            }
+                } else { document.getElementById('loading-text').innerText = result.message || "找不到您的專屬課程資料，請確認是否綁定。"; }
+            } catch (err) { document.getElementById('loading-text').innerText = "連線失敗，請檢查網路或稍後再試。"; }
         }
 
-        // ==========================================
-        //   🎨 渲染前端畫面
-        // ==========================================
         function renderTabs() {
-            const tabsContainer = document.getElementById('tabs-container');
-            tabsContainer.innerHTML = ''; // 清空
-            
+            const container = document.getElementById('tabs-container'); container.innerHTML = '';
             studentDataList.forEach((student, index) => {
                 const tab = document.createElement('div');
                 tab.className = `tab ${index === 0 ? 'active' : ''}`;
-                // 若名字太長，稍微做截斷處理
-                const shortName = student.studentName.split(' ')[0].substring(0, 8);
-                tab.innerText = `${shortName} (${student.courseType})`;
+                tab.innerText = `${student.studentName.split(' ')[0]} (${student.courseType})`;
                 tab.onclick = () => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    renderStudentData(index);
+                    tab.classList.add('active'); renderStudentData(index);
                 };
-                tabsContainer.appendChild(tab);
+                container.appendChild(tab);
             });
         }
 
         function renderStudentData(index) {
-            const data = studentDataList[index];
-            
-            // 1. 基本資訊
+            currentTabIndex = index; const data = studentDataList[index];
             document.getElementById('display-name').innerText = data.studentName;
-            document.getElementById('display-remaining').innerText = `剩餘堂數：${data.remainingClasses} 堂`;
-
-            // 2. 歷史進度
+            // 👑 顯示格式：已上 X / 購買 Y ・剩餘 Z 堂 (購買堂數為 0 時只顯示剩餘，避免出現 0/0)
+            if (data.totalClasses > 0) {
+                document.getElementById('display-remaining').innerText = `已上 ${data.usedClasses} / ${data.totalClasses} 堂 ・ 剩餘 ${data.remainingClasses} 堂`;
+            } else {
+                document.getElementById('display-remaining').innerText = `剩餘堂數：${data.remainingClasses} 堂`;
+            }
             document.getElementById('display-material').innerText = data.latestProgress.material;
-            document.getElementById('display-feedback').innerText = data.latestProgress.feedback;
-            
-            // 處理作業 (如果字串是 http 開頭，渲染成超連結)
+            document.getElementById('display-feedback-en').innerText = data.latestProgress.feedbackEn;
+            document.getElementById('display-feedback-zh').innerText = data.latestProgress.feedbackZh;
+
             const hwContainer = document.getElementById('homework-container');
             const hwText = data.latestProgress.homework;
             if (!hwText || hwText.trim() === "" || hwText.trim().toLowerCase() === "無") {
-                hwContainer.style.display = 'none'; // 隱藏無作業區塊
+                hwContainer.style.display = 'none';
             } else {
                 hwContainer.style.display = 'flex';
-                const hwDisplay = document.getElementById('display-homework');
+                // 👑 改用 textContent / 動態建立 DOM 節點，避免 Sheet 內容含有 HTML/script 時被直接執行 (XSS 風險)
+                const hwContentEl = document.getElementById('display-homework');
+                hwContentEl.innerHTML = '';
                 if (hwText.startsWith('http')) {
-                    hwDisplay.innerHTML = `<a href="${hwText}" target="_blank">點擊查看/下載作業附件</a>`;
+                    const link = document.createElement('a');
+                    link.href = hwText;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = '點擊下載作業附件';
+                    hwContentEl.appendChild(link);
                 } else {
-                    hwDisplay.innerText = hwText;
+                    hwContentEl.textContent = hwText;
                 }
             }
 
-            // 3. 未來課表清單
-            const listContainer = document.getElementById('upcoming-list');
-            listContainer.innerHTML = '';
-            
+            const listContainer = document.getElementById('upcoming-list'); listContainer.innerHTML = '';
             if (data.upcomingClasses.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; color:#6c757d; padding: 20px 0;">目前兩週內尚無排課紀錄喔！</div>';
+                listContainer.innerHTML = '<div style="text-align:center; color:#6c757d; padding:15px 0;">目前未來兩週尚無排課紀錄喔！</div>';
                 return;
             }
 
             data.upcomingClasses.forEach(course => {
-                const item = document.createElement('div');
-                item.className = 'class-item';
-                
-                // 左側資訊
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'class-info';
-                infoDiv.innerHTML = `<span class="class-date">${course.dateStr} ${course.timeStr}</span><span class="class-type">${data.courseType} Course</span>`;
-                
-                // 右側按鈕
-                const btn = document.createElement('button');
-                btn.className = 'btn-cancel';
-                btn.id = `btn-${course.eventId}`;
-                
+                const item = document.createElement('div'); item.className = 'class-item';
+                item.innerHTML = `<div class="class-info"><span class="class-date">${course.dateStr} ${course.timeStr}</span><span class="class-type">${data.courseType} Course</span></div>`;
+
+                const btn = document.createElement('button'); btn.className = 'btn-cancel';
                 if (course.canCancel) {
                     btn.innerText = '申請請假';
                     btn.onclick = () => handleCancelClass(course.eventId, course.startTimeMs, btn);
-                } else {
-                    btn.innerText = '不可取消';
-                    btn.disabled = true;
-                }
+                } else { btn.innerText = '不可取消'; btn.disabled = true; }
 
-                item.appendChild(infoDiv);
-                item.appendChild(btn);
-                listContainer.appendChild(item);
+                item.appendChild(btn); listContainer.appendChild(item);
             });
         }
 
-        // ==========================================
-        //   ⚡ 請假防呆與後端互動 API
-        // ==========================================
         function handleCancelClass(eventId, startTimeMs, buttonElement) {
-            // 使用 SweetAlert2 製作精美的防呆確認框
-            Swal.fire({
-                title: '確認請假？',
-                text: "取消後將釋出此時段，確定要申請請假嗎？",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#E63946',
-                cancelButtonColor: '#6C757D',
-                confirmButtonText: '確定請假',
-                cancelButtonText: '先不要'
-            }).then(async (result) => {
+            Swal.fire({ title: '確認請假？', text: "取消後將釋出此時段，確定要申請請假嗎？", icon: 'warning', showCancelButton: true, confirmButtonColor: '#E63946', cancelButtonText: '先不要' }).then(async (result) => {
                 if (result.isConfirmed) {
-                    // UI 先反灰防止重複點擊
-                    buttonElement.innerText = '處理中...';
-                    buttonElement.disabled = true;
-                    
+                    buttonElement.innerText = '處理中...'; buttonElement.disabled = true;
                     try {
-                        const response = await fetch(`${GAS_WEB_APP_URL}?action=liffCancel&userId=${currentUserId}&eventId=${eventId}&startTimeMs=${startTimeMs}`);
-                        const resJSON = await response.json();
-                        
-                        if (resJSON.status === 'success') {
-                            Swal.fire('成功！', '您的課程已成功取消。', 'success');
-                            buttonElement.innerText = '已請假';
-                        } else {
-                            Swal.fire('無法取消', resJSON.message, 'error');
-                            buttonElement.innerText = '申請請假';
-                            buttonElement.disabled = false;
-                        }
-                    } catch (error) {
-                        Swal.fire('連線錯誤', '系統忙碌中，請稍後再試。', 'error');
-                        buttonElement.innerText = '申請請假';
-                        buttonElement.disabled = false;
-                    }
+                        // 👑 改用 POST 傳遞 (原本用 GET，userId/eventId 會留在網址列與伺服器 log 中)
+                        const response = await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({ action: 'liffCancel', userId: currentUserId, eventId: eventId, startTimeMs: startTimeMs })
+                        });
+                        const resultJson = await response.json();
+                        if (resultJson.status === 'success') { Swal.fire('成功！', '課程已順利請假。', 'success'); buttonElement.innerText = '已請假'; }
+                        else { Swal.fire('無法取消', resultJson.message || '距離上課已不足 30 分鐘。', 'error'); buttonElement.innerText = '申請請假'; buttonElement.disabled = false; }
+                    } catch (error) { Swal.fire('連線錯誤', '請稍後再試。', 'error'); buttonElement.innerText = '申請請假'; buttonElement.disabled = false; }
                 }
             });
         }
 
-        // 錯誤提示小幫手
-        function showError(msg) {
-            document.getElementById('loading-text').innerText = msg;
-            document.querySelector('.spinner').style.display = 'none';
+        async function submitHomeworkToTeacher() {
+            const fileInput = document.getElementById('hw-file');
+            const message = document.getElementById('hw-message').value.trim();
+            const currentStudent = studentDataList[currentTabIndex].studentName;
+
+            if (!fileInput.files.length && !message) { Swal.fire('提示', '請選擇檔案或輸入留言！', 'info'); return; }
+            Swal.fire({ title: '上傳分發中...', text: '正在將檔案安全投遞給外師，請勿關閉', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                let fileData = null;
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    if (file.size > 5 * 1024 * 1024) { Swal.fire('檔案過大', '檔案請小於 5MB', 'warning'); return; }
+                    fileData = { name: file.name, mimeType: file.type, base64: await new Promise((r) => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(file); }) };
+                }
+
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'uploadHomework', studentName: currentStudent, userId: currentUserId, message: message, fileData: fileData })
+                });
+
+                const resultJson = await response.json();
+                if (resultJson.status === 'success') {
+                    Swal.fire('成功！', '作業已送達外師 LINE 聊天室！', 'success');
+                    document.getElementById('hw-message').value = ''; fileInput.value = '';
+                } else { Swal.fire('提示', resultJson.message || '分發失敗，外師目前可能未綁定 LINE 註冊。', 'warning'); }
+            } catch (err) { Swal.fire('錯誤', '連線失敗，請檢查設定。', 'error'); }
         }
 
-        // 啟動應用
         window.onload = initializeApp;
     </script>
 </body>
