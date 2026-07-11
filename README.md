@@ -48,6 +48,7 @@
 
         <div class="card">
             <h3 class="card-title">🚀 上次上課進度</h3>
+            <div class="material-text" id="class-date-row" style="font-weight: normal; color: #6C757D; font-size: 14px;">📅 上課日期：<span id="display-class-date">-</span></div>
             <div class="material-text">📚 目前教材：<span id="display-material">載入中...</span></div>
             <div class="feedback-bubble">
                 <div style="font-style: italic; color: #555555; margin-bottom: 10px; font-size: 14px; word-break: break-word;">🇺🇸 <span id="display-feedback-en">Loading...</span></div>
@@ -70,8 +71,8 @@
         // ==========================================
         //   ⚙️ 填寫您的 LIFF 與 GAS 連動資訊
         // ==========================================
-        const LIFF_ID = "2008845693-L2SUJz8X";
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztBUpKu11R_cPzDsRMLgzkbkdheqjNO7PqMon94X67Zx5ZTXRHq13lk0xg2NSVHSI-/exec";
+        const LIFF_ID = "請填入您的_LIFF_ID";
+        const GAS_WEB_APP_URL = "請在此貼上剛才第二步生成的_GAS_網頁應用程式網址";
 
         let studentDataList = [];
         let currentUserId = "";
@@ -124,6 +125,14 @@
                 document.getElementById('display-remaining').innerText = `剩餘堂數：${data.remainingClasses} 堂`;
             }
             document.getElementById('display-material').innerText = data.latestProgress.material;
+            // 👑 上課日期：有值才顯示，無紀錄時整列隱藏
+            const dateRow = document.getElementById('class-date-row');
+            if (data.latestProgress.classDate) {
+                dateRow.style.display = 'block';
+                document.getElementById('display-class-date').innerText = data.latestProgress.classDate;
+            } else {
+                dateRow.style.display = 'none';
+            }
             document.getElementById('display-feedback-en').innerText = data.latestProgress.feedbackEn;
             document.getElementById('display-feedback-zh').innerText = data.latestProgress.feedbackZh;
 
