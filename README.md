@@ -102,15 +102,41 @@
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 currentUserId = (await liff.getProfile()).userId;
-                // 👑 先問身分：老師 → 老師介面；其他 → 家長儀表板
-                const roleRes = await fetch(`${GAS_WEB_APP_URL}?action=getRole&userId=${currentUserId}`);
-                const roleJson = await roleRes.json();
-                if (roleJson.role === 'teacher') {
-                    fetchTeacherData(currentUserId);
+                // 👑 優化：一趟請求完成身分判斷 + 對應資料 (原本 getRole + 抓資料要兩趟)
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
+                const result = await res.json();
+                if (result.role === 'teacher') {
+                    renderTeacherResult(result);
                 } else {
-                    fetchDashboardData(currentUserId);
+                    renderStudentResult(result);
                 }
             } catch (err) { document.getElementById('loading-text').innerText = "LIFF 初始化失敗，請在 LINE 內開啟。"; }
+        }
+
+        // 👑 家長資料渲染 (從 getInit 拿到的結果直接用，不再另外 fetch)
+        function renderStudentResult(result) {
+            if (result.status === 'success' && result.data && result.data.length > 0) {
+                studentDataList = result.data;
+                renderTabs(); renderStudentData(0);
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('header').style.display = 'block';
+                document.getElementById('main-content').style.display = 'block';
+            } else {
+                document.getElementById('loading-text').innerText = result.message || "找不到您的專屬課程資料，請確認是否綁定。";
+            }
+        }
+
+        // 👑 老師資料渲染 (從 getInit 拿到的結果直接用)
+        function renderTeacherResult(result) {
+            if (result.status === 'success') {
+                teacherData = result;
+                renderTeacher();
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('teacher-header').style.display = 'block';
+                document.getElementById('teacher-content').style.display = 'block';
+            } else {
+                document.getElementById('loading-text').innerText = result.message || "Unable to load teacher data.";
+            }
         }
 
         // ==========================================
@@ -120,15 +146,7 @@
             try {
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=getTeacherDashboard&userId=${userId}`);
                 const result = await res.json();
-                if (result.status === 'success') {
-                    teacherData = result;
-                    renderTeacher();
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('teacher-header').style.display = 'block';
-                    document.getElementById('teacher-content').style.display = 'block';
-                } else {
-                    document.getElementById('loading-text').innerText = result.message || "Unable to load teacher data.";
-                }
+                renderTeacherResult(result);
             } catch (err) { document.getElementById('loading-text').innerText = "Connection failed. Please try again."; }
         }
 
