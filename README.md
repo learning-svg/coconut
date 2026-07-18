@@ -303,7 +303,7 @@
 
             data.upcomingClasses.forEach(course => {
                 const item = document.createElement('div'); item.className = 'class-item';
-                item.innerHTML = `<div class="class-info"><span class="class-date">${course.dateStr} ${course.timeStr}</span><span class="class-type">${data.courseType} Course</span></div>`;
+                item.innerHTML = `<div class="class-info"><span class="class-date">${course.dateStr}（${course.weekday}）${course.timeStr}</span><span class="class-type">${data.courseType} Course</span></div>`;
 
                 const btn = document.createElement('button'); btn.className = 'btn-cancel';
                 if (course.canCancel) {
