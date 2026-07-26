@@ -349,15 +349,24 @@
 
             data.upcomingClasses.forEach(course => {
                 const item = document.createElement('div'); item.className = 'class-item';
-                item.innerHTML = `<div class="class-info"><span class="class-date">${course.dateStr}（${course.weekday}）${course.timeStr}</span><span class="class-type">${data.courseType} Course</span></div>`;
 
-                const btn = document.createElement('button'); btn.className = 'btn-cancel';
-                if (course.canCancel) {
-                    btn.innerText = '申請請假';
-                    btn.onclick = () => handleCancelClass(course.eventId, course.startTimeMs, btn);
-                } else { btn.innerText = '不可取消'; btn.disabled = true; }
-
-                item.appendChild(btn); listContainer.appendChild(item);
+                if (course.cancelled) {
+                    // 👑 已請假的課：日期時間劃掉 + 灰色 + 「請假」標籤 (保留時段、標註請假)
+                    item.innerHTML = `<div class="class-info"><span class="class-date" style="text-decoration:line-through; color:#6C757D;">${course.dateStr}（${course.weekday}）${course.timeStr}</span><span class="class-type" style="color:#ADB5BD;">${data.courseType} Course</span></div>`;
+                    const tag = document.createElement('span');
+                    tag.innerText = '請假';
+                    tag.style.cssText = 'padding:6px 14px; background:#F7C1C1; color:#791F1F; border-radius:8px; font-weight:bold; font-size:14px; white-space:nowrap;';
+                    item.appendChild(tag);
+                } else {
+                    item.innerHTML = `<div class="class-info"><span class="class-date">${course.dateStr}（${course.weekday}）${course.timeStr}</span><span class="class-type">${data.courseType} Course</span></div>`;
+                    const btn = document.createElement('button'); btn.className = 'btn-cancel';
+                    if (course.canCancel) {
+                        btn.innerText = '申請請假';
+                        btn.onclick = () => handleCancelClass(course.eventId, course.startTimeMs, btn);
+                    } else { btn.innerText = '不可取消'; btn.disabled = true; }
+                    item.appendChild(btn);
+                }
+                listContainer.appendChild(item);
             });
         }
 
