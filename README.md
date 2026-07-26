@@ -47,7 +47,14 @@
         <div class="student-summary"><h2 id="display-name">學生姓名</h2><div class="badge-pill" id="display-remaining">剩餘堂數：- 堂</div></div>
 
         <div class="card">
-            <h3 class="card-title">🚀 上次上課進度</h3>
+            <h3 class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>🚀 上次上課進度</span>
+                <span id="progress-nav" style="display:none; align-items:center; gap:8px; font-size:14px;">
+                    <span id="progress-prev" onclick="changeProgress(-1)" style="width:28px; height:28px; border:1.5px solid #CED4DA; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;">‹</span>
+                    <span id="progress-page" style="font-size:12px; color:#6C757D; font-weight:500;">1 / 2</span>
+                    <span id="progress-next" onclick="changeProgress(1)" style="width:28px; height:28px; border:1.5px solid #E63946; color:#E63946; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;">›</span>
+                </span>
+            </h3>
             <div class="material-text" id="class-date-row" style="font-weight: normal; color: #6C757D; font-size: 14px;">📅 上課日期：<span id="display-class-date">-</span></div>
             <div class="material-text">📚 目前教材：<span id="display-material">載入中...</span></div>
             <div class="feedback-bubble">
@@ -95,6 +102,8 @@
         let studentDataList = [];
         let currentUserId = "";
         let currentTabIndex = 0;
+        let progressRecords = [];      // 👑 最近 N 筆進度紀錄
+        let currentProgressIndex = 0;  // 👑 目前顯示第幾筆 (0=最近)
         let teacherData = null;
 
         async function initializeApp() {
@@ -253,6 +262,71 @@
             });
         }
 
+        // 👑 顯示目前索引的那筆進度紀錄 (教材/回饋/作業/日期)
+        function renderProgress() {
+            const rec = progressRecords[currentProgressIndex];
+            if (!rec) return;
+
+            // 上課日期
+            const dateRow = document.getElementById('class-date-row');
+            if (rec.classDate) {
+                dateRow.style.display = 'block';
+                document.getElementById('display-class-date').innerText = rec.classDate;
+            } else {
+                dateRow.style.display = 'none';
+            }
+            // 教材
+            document.getElementById('display-material').innerText = rec.material;
+            // 回饋
+            document.getElementById('display-feedback-en').innerText = rec.feedbackEn;
+            document.getElementById('display-feedback-zh').innerText = rec.feedbackZh;
+            document.getElementById('feedback-zh-row').style.display = rec.feedbackZh ? 'block' : 'none';
+            // 作業 (跟著切換)
+            const hwContainer = document.getElementById('homework-container');
+            const hwText = rec.homework;
+            if (!hwText || hwText.trim() === "" || hwText.trim().toLowerCase() === "無") {
+                hwContainer.style.display = 'none';
+            } else {
+                hwContainer.style.display = 'flex';
+                const hwContentEl = document.getElementById('display-homework');
+                hwContentEl.innerHTML = '';
+                if (hwText.startsWith('http')) {
+                    const link = document.createElement('a');
+                    link.href = hwText; link.target = '_blank'; link.rel = 'noopener noreferrer';
+                    link.textContent = '點擊下載作業附件';
+                    hwContentEl.appendChild(link);
+                } else {
+                    hwContentEl.textContent = hwText;
+                }
+            }
+
+            // 箭頭與頁碼 (只有超過1筆才顯示切換)
+            const nav = document.getElementById('progress-nav');
+            if (progressRecords.length > 1) {
+                nav.style.display = 'flex';
+                document.getElementById('progress-page').innerText = `${currentProgressIndex + 1} / ${progressRecords.length}`;
+                // 到頭/到尾時箭頭變灰
+                const prev = document.getElementById('progress-prev');
+                const next = document.getElementById('progress-next');
+                const atFirst = currentProgressIndex === 0;
+                const atLast = currentProgressIndex === progressRecords.length - 1;
+                prev.style.borderColor = atFirst ? '#CED4DA' : '#E63946';
+                prev.style.color = atFirst ? '#CED4DA' : '#E63946';
+                next.style.borderColor = atLast ? '#CED4DA' : '#E63946';
+                next.style.color = atLast ? '#CED4DA' : '#E63946';
+            } else {
+                nav.style.display = 'none';
+            }
+        }
+
+        // 👑 箭頭切換：dir = -1(較新) / +1(較舊)
+        function changeProgress(dir) {
+            const newIndex = currentProgressIndex + dir;
+            if (newIndex < 0 || newIndex >= progressRecords.length) return; // 超出範圍不動作
+            currentProgressIndex = newIndex;
+            renderProgress();
+        }
+
         function renderStudentData(index) {
             currentTabIndex = index; const data = studentDataList[index];
             document.getElementById('display-name').innerText = data.studentName;
@@ -262,40 +336,10 @@
             } else {
                 document.getElementById('display-remaining').innerText = `剩餘堂數：${data.remainingClasses} 堂`;
             }
-            document.getElementById('display-material').innerText = data.latestProgress.material;
-            // 👑 上課日期：有值才顯示，無紀錄時整列隱藏
-            const dateRow = document.getElementById('class-date-row');
-            if (data.latestProgress.classDate) {
-                dateRow.style.display = 'block';
-                document.getElementById('display-class-date').innerText = data.latestProgress.classDate;
-            } else {
-                dateRow.style.display = 'none';
-            }
-            document.getElementById('display-feedback-en').innerText = data.latestProgress.feedbackEn;
-            document.getElementById('display-feedback-zh').innerText = data.latestProgress.feedbackZh;
-            // 👑 中文回饋為空時 (已移除即時翻譯) 隱藏該列，只顯示英文
-            document.getElementById('feedback-zh-row').style.display = data.latestProgress.feedbackZh ? 'block' : 'none';
-
-            const hwContainer = document.getElementById('homework-container');
-            const hwText = data.latestProgress.homework;
-            if (!hwText || hwText.trim() === "" || hwText.trim().toLowerCase() === "無") {
-                hwContainer.style.display = 'none';
-            } else {
-                hwContainer.style.display = 'flex';
-                // 👑 改用 textContent / 動態建立 DOM 節點，避免 Sheet 內容含有 HTML/script 時被直接執行 (XSS 風險)
-                const hwContentEl = document.getElementById('display-homework');
-                hwContentEl.innerHTML = '';
-                if (hwText.startsWith('http')) {
-                    const link = document.createElement('a');
-                    link.href = hwText;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    link.textContent = '點擊下載作業附件';
-                    hwContentEl.appendChild(link);
-                } else {
-                    hwContentEl.textContent = hwText;
-                }
-            }
+            // 👑 最近進度紀錄 (最多2筆，可箭頭切換)；相容舊資料退回單筆
+            progressRecords = (data.recentRecords && data.recentRecords.length > 0) ? data.recentRecords : [data.latestProgress];
+            currentProgressIndex = 0;
+            renderProgress();
 
             const listContainer = document.getElementById('upcoming-list'); listContainer.innerHTML = '';
             if (data.upcomingClasses.length === 0) {
