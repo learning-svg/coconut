@@ -52,7 +52,7 @@
             <div class="material-text">📚 目前教材：<span id="display-material">載入中...</span></div>
             <div class="feedback-bubble">
                 <div style="font-style: italic; color: #555555; margin-bottom: 10px; font-size: 14px; word-break: break-word;">🇺🇸 <span id="display-feedback-en">Loading...</span></div>
-                <div style="font-weight: bold; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 15px; word-break: break-word;">🇹🇼 <span id="display-feedback-zh">載入中...</span></div>
+                <div id="feedback-zh-row" style="font-weight: bold; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 15px; word-break: break-word;">🇹🇼 <span id="display-feedback-zh">載入中...</span></div>
             </div>
             <div class="homework-box" id="homework-container"><div class="hw-badge">課後作業</div><div class="hw-content" id="display-homework"></div></div>
         </div>
@@ -273,6 +273,8 @@
             }
             document.getElementById('display-feedback-en').innerText = data.latestProgress.feedbackEn;
             document.getElementById('display-feedback-zh').innerText = data.latestProgress.feedbackZh;
+            // 👑 中文回饋為空時 (已移除即時翻譯) 隱藏該列，只顯示英文
+            document.getElementById('feedback-zh-row').style.display = data.latestProgress.feedbackZh ? 'block' : 'none';
 
             const hwContainer = document.getElementById('homework-container');
             const hwText = data.latestProgress.homework;
