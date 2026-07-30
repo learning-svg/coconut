@@ -41,6 +41,9 @@
 <body>
 
     <div id="loading-screen"><div class="spinner"></div><div id="loading-text">正在載入專屬學習儀表板...</div></div>
+
+    <!-- 👑 特殊畫面容器 (email註冊 / 價格優惠 / 預約體驗 / 退費擋) -->
+    <div id="special-view" style="display:none;"></div>
     <div class="header" id="header" style="display: none;"><div class="tabs-container" id="tabs-container"></div></div>
 
     <div class="content-container" id="main-content">
@@ -111,16 +114,132 @@
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 currentUserId = (await liff.getProfile()).userId;
-                // 👑 優化：一趟請求完成身分判斷 + 對應資料 (原本 getRole + 抓資料要兩趟)
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
                 const result = await res.json();
-                if (result.role === 'teacher') {
-                    renderTeacherResult(result);
-                } else {
-                    renderStudentResult(result);
-                }
+                routeByResult(result);
             } catch (err) { document.getElementById('loading-text').innerText = "LIFF 初始化失敗，請在 LINE 內開啟。"; }
         }
+
+        // 👑 依後端回傳的 role/status 分流到對應畫面
+        function routeByResult(result) {
+            const role = result.role;
+            if (role === 'teacher') { renderTeacherResult(result); return; }
+            if (role === 'refunded') { showRefundedBlock(); return; }
+            if (role === 'needEmail') { showEmailRegister(result.nextView); return; }
+            if (role === 'pricing') { showPricingPage(); return; }
+            if (role === 'booking') { showBookingPage(); return; }
+            // role === 'student'
+            renderStudentResult(result);
+        }
+
+        // 👑 退費 → 擋畫面
+        function showRefundedBlock() {
+            document.getElementById('loading-screen').style.display = 'none';
+            const box = document.getElementById('special-view');
+            box.style.display = 'block';
+            box.innerHTML = `<div style="text-align:center; padding:60px 24px; color:#6C757D;">
+                <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+                <div style="font-size:17px; font-weight:600; color:#333; margin-bottom:8px;">查無資料</div>
+                <div style="font-size:14px;">如有疑問請聯繫客服</div>
+            </div>`;
+        }
+
+        // 👑 email 註冊頁 (nextView = 填完後要去的頁面)
+        let pendingNextView = null;
+        function showEmailRegister(nextView) {
+            pendingNextView = nextView;
+            document.getElementById('loading-screen').style.display = 'none';
+            const box = document.getElementById('special-view');
+            box.style.display = 'block';
+            box.innerHTML = `<div style="padding:24px 18px;">
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div style="font-size:40px;">📧</div>
+                    <div style="font-size:18px; font-weight:700; color:#333; margin-top:8px;">請先登記聯絡 Email</div>
+                    <div style="font-size:13px; color:#6C757D; margin-top:6px;">為確保重要通知不漏接，請留下您的 Email</div>
+                </div>
+                <input id="email-input" type="email" placeholder="example@gmail.com" style="width:100%; box-sizing:border-box; border:1.5px solid #2B2D42; border-radius:8px; padding:12px; font-size:15px; margin-bottom:14px;">
+                <div id="email-error" style="color:#E63946; font-size:13px; margin-bottom:10px; display:none;"></div>
+                <button id="email-submit" onclick="submitEmail()" style="width:100%; background:#E63946; color:#FFF; border:none; border-radius:8px; padding:13px; font-size:16px; font-weight:700; cursor:pointer;">送出</button>
+            </div>`;
+        }
+
+        async function submitEmail() {
+            const email = document.getElementById('email-input').value.trim();
+            const errEl = document.getElementById('email-error');
+            if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) {
+                errEl.style.display = 'block'; errEl.innerText = '請輸入正確的 Email 格式'; return;
+            }
+            const btn = document.getElementById('email-submit');
+            btn.disabled = true; btn.innerText = '送出中...';
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=saveEmail&userId=${currentUserId}&email=${encodeURIComponent(email)}`);
+                const result = await res.json();
+                if (result.status === 'success') {
+                    // 👑 填完自動進入對應頁面
+                    if (pendingNextView === 'student') {
+                        // 重新抓學生專區資料
+                        const r2 = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
+                        routeByResult(await r2.json());
+                    } else if (pendingNextView === 'pricing') {
+                        document.getElementById('special-view').style.display = 'none';
+                        showPricingPage();
+                    } else {
+                        document.getElementById('special-view').style.display = 'none';
+                        showBookingPage();
+                    }
+                } else {
+                    errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
+                    btn.disabled = false; btn.innerText = '送出';
+                }
+            } catch (err) {
+                errEl.style.display = 'block'; errEl.innerText = '連線失敗，請重試';
+                btn.disabled = false; btn.innerText = '送出';
+            }
+        }
+
+        // 👑 價格 + 優惠頁 (Trial / 結訓)
+        function showPricingPage() {
+            document.getElementById('loading-screen').style.display = 'none';
+            const box = document.getElementById('special-view');
+            box.style.display = 'block';
+            box.innerHTML = `<div style="padding:20px 16px;">
+                <div style="text-align:center; font-size:20px; font-weight:700; color:#333; margin-bottom:16px;">💰 課程價格</div>
+                <div style="background:#FFF; border:1.5px solid #2B2D42; border-radius:12px; padding:16px; margin-bottom:20px;">
+                    ${priceRow('體驗課程', '75元 / 25分鐘')}
+                    ${priceRow('ESL 課程', '310元 / 50分鐘')}
+                    ${priceRow('英檢證照', '330元 / 50分鐘')}
+                    ${priceRow('商業英文', '340元 / 50分鐘')}
+                    ${priceRow('多益課程', '380元 / 50分鐘')}
+                    ${priceRow('雅思課程', '440元 / 50分鐘', true)}
+                </div>
+                <div style="text-align:center; font-size:20px; font-weight:700; color:#333; margin-bottom:16px;">🎁 優惠折扣</div>
+                <div style="background:#FFF; border:1.5px solid #2B2D42; border-radius:12px; padding:16px;">
+                    ${priceRow('優惠方案 1', '10堂享 95折')}
+                    ${priceRow('優惠方案 2', '20堂享 9折')}
+                    ${priceRow('優惠方案 3', '30堂享 85折')}
+                    ${priceRow('優惠方案 4', '邀請好友折 100', true)}
+                </div>
+            </div>`;
+        }
+        function priceRow(name, price, last) {
+            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; ${last ? '' : 'border-bottom:1px solid #EEE;'}">
+                <span style="font-size:15px; font-weight:600; color:#333;">${name}</span>
+                <span style="font-size:15px; color:#E63946; font-weight:600;">${price}</span>
+            </div>`;
+        }
+
+        // 👑 預約體驗頁 (第二階段，先放預留位置)
+        function showBookingPage() {
+            document.getElementById('loading-screen').style.display = 'none';
+            const box = document.getElementById('special-view');
+            box.style.display = 'block';
+            box.innerHTML = `<div style="text-align:center; padding:50px 24px; color:#6C757D;">
+                <div style="font-size:44px; margin-bottom:14px;">🥥</div>
+                <div style="font-size:17px; font-weight:600; color:#333; margin-bottom:8px;">預約體驗課</div>
+                <div style="font-size:14px;">預約功能即將開放，敬請期待 😊</div>
+            </div>`;
+        }
+
 
         // 👑 家長資料渲染 (從 getInit 拿到的結果直接用，不再另外 fetch)
         function renderStudentResult(result) {
