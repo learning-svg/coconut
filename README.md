@@ -158,7 +158,7 @@
             <button class="btn-cancel" style="width:100%; background:var(--blush); color:#fff; border-color:var(--blush);" onclick="submitHomeworkToTeacher()">安全送出給老師</button>
         </div>
 
-        <div class="card"><h3 class="card-title">未來兩週課表</h3><div id="upcoming-list"></div></div>
+        <div class="card"><h3 class="card-title">未來一週課表</h3><div id="upcoming-list"></div></div>
     </div>
 
     <!-- 老師專用介面 (全英文) -->
