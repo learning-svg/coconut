@@ -7,77 +7,165 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <meta name="color-scheme" content="light only">
+    <meta name="supported-color-schemes" content="light">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #E63946; --bg-color: #F8F9FA; --card-bg: #FFFFFF; --text-main: #333333; --text-muted: #6C757D; --border-color: #2B2D42; --bubble-bg: #E8F1F2; }
-        * { box-sizing: border-box; font-family: 'Noto Sans TC', sans-serif; }
-        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-main); }
-        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(0,0,0,0.1); border-top-color: var(--border-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .header { background: var(--card-bg); border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 100; padding-top: 15px;}
-        .tabs-container { display: flex; overflow-x: auto; padding: 0 15px; gap: 10px; scrollbar-width: none; }
-        .tab { padding: 10px 20px; font-weight: bold; font-size: 16px; border: 2px solid transparent; border-bottom: none; border-radius: 12px 12px 0 0; cursor: pointer; color: var(--text-muted); transition: all 0.2s; white-space: nowrap; }
-        .tab.active { color: var(--text-main); border-color: var(--border-color); background: var(--card-bg); border-bottom: 2px solid var(--card-bg); margin-bottom: -2px; }
-        .content-container { padding: 20px 15px; display: none; }
-        .student-summary { text-align: center; margin-bottom: 20px; }
-        .student-summary h2 { margin: 0 0 5px 0; font-size: 22px; }
-        .badge-pill { display: inline-block; padding: 5px 12px; border: 1.5px solid var(--border-color); border-radius: 20px; font-size: 14px; font-weight: bold;}
-        .card { background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 2px 4px 0px rgba(0,0,0,0.05); }
-        .card-title { margin-top: 0; margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 8px;}
-        .material-text { font-weight: bold; font-size: 16px; margin-bottom: 15px; }
-        .feedback-bubble { background: var(--bubble-bg); padding: 15px; border-radius: 0 12px 12px 12px; border: 1px solid var(--border-color); margin-bottom: 15px; line-height: 1.5; }
-        .homework-box { display: flex; align-items: flex-start; gap: 10px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
-        .hw-badge { background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; white-space: nowrap;}
-        .hw-content { font-size: 15px; line-height: 1.4; word-break: break-all; }
-        .hw-content a { color: var(--primary-color); font-weight: bold; text-decoration: underline; }
-        .class-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #EEEEEE; }
-        .class-info { display: flex; flex-direction: column; gap: 4px; }
-        .class-date { font-weight: bold; font-size: 16px; }
-        .class-type { font-size: 14px; color: var(--text-muted); }
-        .btn-cancel { background: white; border: 1.5px solid var(--border-color); color: var(--primary-color); padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap;}
-        .btn-cancel:disabled { background: #E9ECEF; border-color: #CED4DA; color: #6C757D; cursor: not-allowed; }
+      :root{
+        color-scheme: light only;
+        --coffee:#6F4E37; --coffee-deep:#4A3221; --coffee-light:#A67B5B;
+        --cream:#FDFBF6; --paper:#FAF8F5;
+        --blush:#D97B54; --accent:#C08A3E; --leaf:#8A9A5B;
+        --line:#DCCFC0; --text-soft:#8A7A68; --star:#F5C542;
+        --primary-color:#D97B54; --border-color:#DCCFC0;
+      }
+      @media (prefers-color-scheme: dark){ :root{ color-scheme: light only; } }
+      html{ background:#FDFBF6 !important; -webkit-text-size-adjust:100%; forced-color-adjust:none; }
+      *{ box-sizing:border-box; margin:0; padding:0; forced-color-adjust:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      body{ font-family:'Noto Sans TC',sans-serif; background:#FDFBF6 !important; color:var(--coffee-deep); padding:0 0 40px; -webkit-font-smoothing:antialiased; min-height:100vh; }
+
+      /* 載入畫面 */
+      #loading-screen{ position:fixed; inset:0; background:#FDFBF6; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
+      .spinner{ width:40px; height:40px; border:3px solid var(--line); border-top-color:var(--coffee); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; }
+      #loading-text{ color:var(--text-soft); font-size:14px; }
+      @keyframes spin{ to{ transform:rotate(360deg); } }
+
+      /* 分頁 (檔案夾效果) */
+      .header{ background:#FDFBF6; padding-top:14px; position:sticky; top:0; z-index:100; }
+      .tabs-container{ display:flex; gap:6px; overflow-x:auto; padding:0 18px; scrollbar-width:none; border-bottom:1.5px solid var(--coffee-light); }
+      .tabs-container::-webkit-scrollbar{ display:none; }
+      .tab{ font-family:'Baloo 2'; font-weight:600; font-size:15px; padding:11px 22px 12px; border-radius:14px 14px 0 0; white-space:nowrap; color:var(--text-soft); cursor:pointer; border:1.5px solid transparent; border-bottom:none; }
+      .tab.active{ color:var(--coffee-deep); border-color:var(--coffee-light); background:#FDFBF6; margin-bottom:-1.5px; }
+
+      .content-container{ padding:20px 18px; }
+
+      /* 學生標題 + 堂數膠囊 */
+      .student-summary{ text-align:center; margin-bottom:20px; }
+      .student-summary h2{ font-family:'Baloo 2'; font-weight:700; font-size:24px; color:var(--coffee-deep); margin-bottom:10px; }
+      .badge-pill{ display:inline-flex; align-items:center; gap:8px; background:#FDFBF6; border:2px solid var(--coffee); border-radius:22px; padding:6px 18px; font-size:14px; font-weight:700; color:var(--coffee-deep); }
+
+      /* 卡片 */
+      .card{ background:#FDFBF6; border-radius:16px; padding:20px; margin-bottom:16px; border:2px solid var(--coffee); }
+      .card-title{ font-family:'Baloo 2'; font-weight:700; font-size:17px; color:var(--coffee-deep); margin-bottom:14px; }
+
+      /* 箭頭切換 */
+      .prog-arrow{ width:30px; height:30px; border-radius:50%; border:2px solid var(--coffee); color:var(--coffee); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; cursor:pointer; background:#FDFBF6; user-select:none; }
+      .prog-arrow.off{ border-color:var(--line); color:var(--line); }
+
+      .material-text{ font-size:15px; font-weight:700; color:var(--coffee-deep); margin-bottom:10px; line-height:1.5; }
+      #class-date-row{ font-weight:500 !important; color:var(--text-soft) !important; font-size:13px !important; }
+
+      /* 回饋泡泡 */
+      .feedback-bubble{ background:var(--paper); border-radius:6px 16px 16px 16px; padding:14px 16px; border:1.5px solid var(--line); margin-top:6px; }
+
+      /* 作業 */
+      .homework-box{ display:flex; align-items:center; gap:10px; margin-top:16px; padding-top:16px; border-top:1.5px dashed var(--line); }
+      .hw-badge{ background:var(--blush); color:#fff; font-size:12px; font-weight:700; padding:6px 12px; border-radius:10px; white-space:nowrap; }
+      .hw-content{ font-size:14px; line-height:1.5; word-break:break-word; }
+      .hw-content a{ color:var(--blush); font-weight:700; text-decoration:underline; }
+
+      /* 課表列 */
+      .class-item{ display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1.5px solid var(--line); }
+      .class-item:last-child{ border-bottom:none; }
+      .class-info{ display:flex; flex-direction:column; gap:3px; }
+      .class-date{ font-family:'Baloo 2'; font-weight:600; font-size:16px; color:var(--coffee-deep); }
+      .class-type{ font-size:12px; color:var(--text-soft); }
+
+      /* 按鈕 */
+      .btn-cancel{ background:#FDFBF6; border:2px solid var(--coffee); color:var(--coffee); padding:8px 16px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; font-family:'Noto Sans TC'; }
+      .btn-cancel:active{ background:var(--paper); }
+      .btn-cancel:disabled{ background:var(--paper); border-color:var(--line); color:var(--text-soft); cursor:not-allowed; }
+
+      /* 星星鼓勵條 */
+      .cheer{ display:flex; align-items:center; gap:12px; background:#FDFBF6; border:2px solid var(--coffee); border-radius:16px; padding:14px 18px; margin-bottom:16px; }
+      .cheer .star{ font-size:22px; color:var(--star); flex-shrink:0; line-height:1; }
+      .cheer .cheer-text{ flex:1; text-align:center; }
+      .cheer .en{ font-family:'Baloo 2'; font-weight:700; font-size:15px; color:var(--coffee); }
+      .cheer .zh{ font-size:12px; color:var(--text-soft); margin-top:3px; }
+
+      /* 品牌條 */
+      .brand-bar{ padding:16px 18px 4px; }
+      .brand-name{ font-family:'Baloo 2'; font-weight:700; font-size:18px; color:var(--coffee-deep); }
+      .brand-sub{ font-size:11px; color:var(--text-soft); margin-top:-2px; }
+
+      /* 特殊頁面 (email/價格/預約/退費) 共用 */
+      .sv-wrap{ padding:24px 18px; }
+      .sv-center{ text-align:center; padding:50px 24px; color:var(--text-soft); }
+      .sv-emoji{ font-size:44px; margin-bottom:14px; }
+      .sv-title{ font-family:'Baloo 2'; font-size:18px; font-weight:700; color:var(--coffee-deep); margin-bottom:8px; }
+      .sv-sub{ font-size:14px; color:var(--text-soft); line-height:1.5; }
+      .sv-input{ width:100%; border:2px solid var(--coffee); border-radius:12px; padding:12px; font-size:15px; margin-bottom:14px; background:#FDFBF6; color:var(--coffee-deep); font-family:'Noto Sans TC'; }
+      .sv-btn{ width:100%; background:var(--blush); color:#fff; border:none; border-radius:12px; padding:13px; font-size:16px; font-weight:700; cursor:pointer; font-family:'Baloo 2'; }
+      .price-card{ background:#FDFBF6; border:2px solid var(--coffee); border-radius:16px; padding:18px; margin-bottom:20px; }
+      .price-row{ display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1.5px solid var(--line); }
+      .price-row:last-child{ border-bottom:none; }
+      .price-name{ font-size:15px; font-weight:600; color:var(--coffee-deep); }
+      .price-val{ font-size:15px; color:var(--blush); font-weight:700; }
+      .sv-section-title{ text-align:center; font-family:'Baloo 2'; font-size:20px; font-weight:700; color:var(--coffee-deep); margin-bottom:16px; }
     </style>
 </head>
 <body>
 
     <div id="loading-screen"><div class="spinner"></div><div id="loading-text">正在載入專屬學習儀表板...</div></div>
 
-    <!-- 👑 特殊畫面容器 (email註冊 / 價格優惠 / 預約體驗 / 退費擋) -->
+    <!-- 特殊畫面容器 (email註冊 / 價格優惠 / 預約體驗 / 退費擋) -->
     <div id="special-view" style="display:none;"></div>
+
+    <div class="brand-bar" id="brand-bar" style="display:none;">
+        <div class="brand-name">Coconut English</div>
+        <div class="brand-sub">椰菲英文 · 專屬學習區</div>
+    </div>
+
     <div class="header" id="header" style="display: none;"><div class="tabs-container" id="tabs-container"></div></div>
 
-    <div class="content-container" id="main-content">
+    <div class="content-container" id="main-content" style="display:none;">
         <div class="student-summary"><h2 id="display-name">學生姓名</h2><div class="badge-pill" id="display-remaining">剩餘堂數：- 堂</div></div>
+
+        <div class="cheer">
+            <span class="star">&#10022;</span>
+            <div class="cheer-text">
+                <div class="en">Every day is a new beginning!</div>
+                <div class="zh">每一天都是新的開始，繼續加油</div>
+            </div>
+            <span class="star">&#10022;</span>
+        </div>
 
         <div class="card">
             <h3 class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>🚀 上次上課進度</span>
+                <span>上次上課進度</span>
                 <span id="progress-nav" style="display:none; align-items:center; gap:8px; font-size:14px;">
-                    <span id="progress-prev" onclick="changeProgress(-1)" style="width:28px; height:28px; border:1.5px solid #CED4DA; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;">‹</span>
-                    <span id="progress-page" style="font-size:12px; color:#6C757D; font-weight:500;">1 / 2</span>
-                    <span id="progress-next" onclick="changeProgress(1)" style="width:28px; height:28px; border:1.5px solid #E63946; color:#E63946; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;">›</span>
+                    <span id="progress-prev" class="prog-arrow off" onclick="changeProgress(-1)">&#8249;</span>
+                    <span id="progress-page" style="font-size:12px; color:var(--text-soft); font-weight:700;">1 / 2</span>
+                    <span id="progress-next" class="prog-arrow" onclick="changeProgress(1)">&#8250;</span>
                 </span>
             </h3>
-            <div class="material-text" id="class-date-row" style="font-weight: normal; color: #6C757D; font-size: 14px;">📅 上課日期：<span id="display-class-date">-</span></div>
-            <div class="material-text">📚 目前教材：<span id="display-material">載入中...</span></div>
+            <div class="material-text" id="class-date-row">上課日期　<span id="display-class-date">-</span></div>
+            <div class="material-text">目前教材　<span id="display-material">載入中...</span></div>
             <div class="feedback-bubble">
-                <div style="font-style: italic; color: #555555; margin-bottom: 10px; font-size: 14px; word-break: break-word;">🇺🇸 <span id="display-feedback-en">Loading...</span></div>
-                <div id="feedback-zh-row" style="font-weight: bold; border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 15px; word-break: break-word;">🇹🇼 <span id="display-feedback-zh">載入中...</span></div>
+                <div style="font-size:11px; color:var(--leaf); font-weight:700; letter-spacing:.5px; margin-bottom:6px;">TEACHER'S FEEDBACK</div>
+                <div style="font-style:italic; color:var(--coffee-deep); font-size:14px; line-height:1.6; word-break:break-word;"><span id="display-feedback-en">Loading...</span></div>
+                <div id="feedback-zh-row" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--line); font-size:14px; color:var(--coffee-deep); word-break:break-word;"><span id="display-feedback-zh"></span></div>
             </div>
             <div class="homework-box" id="homework-container"><div class="hw-badge">課後作業</div><div class="hw-content" id="display-homework"></div></div>
         </div>
 
-        <div class="card" style="background-color: #FAFAFA;">
-            <h3 class="card-title">📤 繳交作業 / 留言給授課老師</h3>
-            <textarea id="hw-message" placeholder="老師好，這是我的功課 (Teacher, this is my homework...)" style="width: 100%; height: 70px; margin-bottom: 15px; border-radius: 8px; border: 1.5px solid var(--border-color); padding: 10px; font-size: 14px; resize: none;"></textarea>
-            <input type="file" id="hw-file" style="margin-bottom: 15px; width: 100%; font-size: 14px;" accept="image/*,.pdf,.mp3">
-            <button class="btn-cancel" style="width: 100%; background-color: var(--primary-color); color: white;" onclick="submitHomeworkToTeacher()">安全送出給老師</button>
+        <div class="card">
+            <h3 class="card-title">繳交作業 / 留言給老師</h3>
+            <textarea id="hw-message" placeholder="老師好，這是我的功課 (Teacher, this is my homework...)" style="width:100%; height:70px; margin-bottom:14px; border-radius:12px; border:2px solid var(--border-color); padding:10px; font-size:14px; resize:none; background:#FDFBF6; color:var(--coffee-deep); font-family:'Noto Sans TC';"></textarea>
+            <input type="file" id="hw-file" style="margin-bottom:14px; width:100%; font-size:14px;" accept="image/*,.pdf,.mp3">
+            <button class="btn-cancel" style="width:100%; background:var(--blush); color:#fff; border-color:var(--blush);" onclick="submitHomeworkToTeacher()">安全送出給老師</button>
         </div>
 
-        <div class="card"><h3 class="card-title">📅 未來兩週課表</h3><div id="upcoming-list"></div></div>
+        <div class="card"><h3 class="card-title">未來兩週課表</h3><div id="upcoming-list"></div></div>
     </div>
 
-    <!-- 👑 老師專用介面 (全英文，預設隱藏，身分為 teacher 時顯示) -->
+    <!-- 老師專用介面 (全英文) -->
+    <div class="brand-bar" id="teacher-brand-bar" style="display:none;">
+        <div class="brand-name">Coconut English</div>
+        <div class="brand-sub">Teacher Portal</div>
+    </div>
     <div class="header" id="teacher-header" style="display: none;">
         <div class="tabs-container" id="teacher-tabs">
             <div class="tab active" data-ttab="0" onclick="switchTeacherTab(0)">Today</div>
@@ -94,7 +182,6 @@
         <div id="t-tab-feedback" style="display:none;"></div>
         <div id="t-tab-tomorrow" style="display:none;"></div>
     </div>
-
     <script>
         // ==========================================
         //   ⚙️ 填寫您的 LIFF 與 GAS 連動資訊
@@ -137,7 +224,7 @@
             document.getElementById('loading-screen').style.display = 'none';
             const box = document.getElementById('special-view');
             box.style.display = 'block';
-            box.innerHTML = `<div style="text-align:center; padding:60px 24px; color:#6C757D;">
+            box.innerHTML = `<div style="text-align:center; padding:60px 24px; color:var(--text-soft);">
                 <div style="font-size:48px; margin-bottom:16px;">🔍</div>
                 <div style="font-size:17px; font-weight:600; color:#333; margin-bottom:8px;">查無資料</div>
                 <div style="font-size:14px;">如有疑問請聯繫客服</div>
@@ -155,11 +242,11 @@
                 <div style="text-align:center; margin-bottom:20px;">
                     <div style="font-size:40px;">📧</div>
                     <div style="font-size:18px; font-weight:700; color:#333; margin-top:8px;">請先登記聯絡 Email</div>
-                    <div style="font-size:13px; color:#6C757D; margin-top:6px;">為確保重要通知不漏接，請留下您的 Email</div>
+                    <div style="font-size:13px; color:var(--text-soft); margin-top:6px;">為確保重要通知不漏接，請留下您的 Email</div>
                 </div>
-                <input id="email-input" type="email" placeholder="example@gmail.com" style="width:100%; box-sizing:border-box; border:1.5px solid #2B2D42; border-radius:8px; padding:12px; font-size:15px; margin-bottom:14px;">
-                <div id="email-error" style="color:#E63946; font-size:13px; margin-bottom:10px; display:none;"></div>
-                <button id="email-submit" onclick="submitEmail()" style="width:100%; background:#E63946; color:#FFF; border:none; border-radius:8px; padding:13px; font-size:16px; font-weight:700; cursor:pointer;">送出</button>
+                <input id="email-input" type="email" placeholder="example@gmail.com" style="width:100%; box-sizing:border-box; border:1.5px solid var(--coffee); border-radius:8px; padding:12px; font-size:15px; margin-bottom:14px;">
+                <div id="email-error" style="color:var(--blush); font-size:13px; margin-bottom:10px; display:none;"></div>
+                <button id="email-submit" onclick="submitEmail()" style="width:100%; background:var(--blush); color:#FFF; border:none; border-radius:8px; padding:13px; font-size:16px; font-weight:700; cursor:pointer;">送出</button>
             </div>`;
         }
 
@@ -204,7 +291,7 @@
             box.style.display = 'block';
             box.innerHTML = `<div style="padding:20px 16px;">
                 <div style="text-align:center; font-size:20px; font-weight:700; color:#333; margin-bottom:16px;">💰 課程價格</div>
-                <div style="background:#FFF; border:1.5px solid #2B2D42; border-radius:12px; padding:16px; margin-bottom:20px;">
+                <div style="background:#FFF; border:1.5px solid var(--coffee); border-radius:12px; padding:16px; margin-bottom:20px;">
                     ${priceRow('體驗課程', '75元 / 25分鐘')}
                     ${priceRow('ESL 課程', '310元 / 50分鐘')}
                     ${priceRow('英檢證照', '330元 / 50分鐘')}
@@ -213,7 +300,7 @@
                     ${priceRow('雅思課程', '440元 / 50分鐘', true)}
                 </div>
                 <div style="text-align:center; font-size:20px; font-weight:700; color:#333; margin-bottom:16px;">🎁 優惠折扣</div>
-                <div style="background:#FFF; border:1.5px solid #2B2D42; border-radius:12px; padding:16px;">
+                <div style="background:#FFF; border:1.5px solid var(--coffee); border-radius:12px; padding:16px;">
                     ${priceRow('優惠方案 1', '10堂享 95折')}
                     ${priceRow('優惠方案 2', '20堂享 9折')}
                     ${priceRow('優惠方案 3', '30堂享 85折')}
@@ -224,7 +311,7 @@
         function priceRow(name, price, last) {
             return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; ${last ? '' : 'border-bottom:1px solid #EEE;'}">
                 <span style="font-size:15px; font-weight:600; color:#333;">${name}</span>
-                <span style="font-size:15px; color:#E63946; font-weight:600;">${price}</span>
+                <span style="font-size:15px; color:var(--blush); font-weight:600;">${price}</span>
             </div>`;
         }
 
@@ -233,7 +320,7 @@
             document.getElementById('loading-screen').style.display = 'none';
             const box = document.getElementById('special-view');
             box.style.display = 'block';
-            box.innerHTML = `<div style="text-align:center; padding:50px 24px; color:#6C757D;">
+            box.innerHTML = `<div style="text-align:center; padding:50px 24px; color:var(--text-soft);">
                 <div style="font-size:44px; margin-bottom:14px;">🥥</div>
                 <div style="font-size:17px; font-weight:600; color:#333; margin-bottom:8px;">預約體驗課</div>
                 <div style="font-size:14px;">預約功能即將開放，敬請期待 😊</div>
@@ -248,7 +335,7 @@
                 renderTabs(); renderStudentData(0);
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('header').style.display = 'block';
-                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('main-content').style.display = 'block'; document.getElementById('brand-bar').style.display = 'block';
             } else {
                 document.getElementById('loading-text').innerText = result.message || "找不到您的專屬課程資料，請確認是否綁定。";
             }
@@ -261,7 +348,7 @@
                 renderTeacher();
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('teacher-header').style.display = 'block';
-                document.getElementById('teacher-content').style.display = 'block';
+                document.getElementById('teacher-content').style.display = 'block'; document.getElementById('teacher-brand-bar').style.display = 'block';
             } else {
                 document.getElementById('loading-text').innerText = result.message || "Unable to load teacher data.";
             }
@@ -310,7 +397,7 @@
                         <div style="font-size:15px;font-weight:bold;color:#333;">${esc(c.courseKey)}</div>
                         <div style="font-size:13px;font-weight:bold;color:#333;">${esc(c.timeStr)}</div>
                     </div>
-                    ${c.material ? `<div style="font-size:13px;color:#6C757D;">${esc(c.material)}</div>` : ''}
+                    ${c.material ? `<div style="font-size:13px;color:var(--text-soft);">${esc(c.material)}</div>` : ''}
                 </div>`;
             }).join('');
         }
@@ -323,11 +410,11 @@
                 let hwBlock;
                 if (r.homework && r.homework.hasSubmission) {
                     const link = (r.homework.fileUrl && r.homework.fileUrl !== '無附件')
-                        ? `<div style="font-size:13px;"><a href="${esc(r.homework.fileUrl)}" target="_blank" style="color:#854F0B;font-weight:bold;">Open homework file</a></div>` : '';
+                        ? `<div style="font-size:13px;"><a href="${esc(r.homework.fileUrl)}" target="_blank" style="color:var(--blush);font-weight:bold;">Open homework file</a></div>` : '';
                     const msg = r.homework.comment ? `<div style="font-size:13px;color:#333;">Message: ${esc(r.homework.comment)}</div>` : '';
-                    hwBlock = `<div style="background:#FAEEDA;padding:10px;border-radius:8px;border:1px solid #854F0B;">
-                        <div style="font-size:12px;color:#854F0B;font-weight:bold;">📤 Homework submitted</div>
-                        <div style="font-size:12px;color:#854F0B;">🕐 ${esc(r.homework.submittedAt)}</div>
+                    hwBlock = `<div style="background:#FBF0E4;padding:10px;border-radius:8px;border:1px solid var(--blush);">
+                        <div style="font-size:12px;color:var(--blush);font-weight:bold;">📤 Homework submitted</div>
+                        <div style="font-size:12px;color:var(--blush);">🕐 ${esc(r.homework.submittedAt)}</div>
                         ${msg}${link}
                     </div>`;
                 } else {
@@ -335,8 +422,8 @@
                 }
                 return `<div class="card">
                     <div style="font-size:15px;font-weight:bold;color:#333;margin-bottom:10px;">${esc(r.courseKey)}</div>
-                    <div style="background:#E8F1F2;padding:10px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:10px;">
-                        <div style="font-size:12px;color:#6C757D;">💬 Latest feedback${r.feedbackDate ? ' (' + esc(r.feedbackDate) + ')' : ''}</div>
+                    <div style="background:var(--paper);padding:10px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:10px;">
+                        <div style="font-size:12px;color:var(--text-soft);">💬 Latest feedback${r.feedbackDate ? ' (' + esc(r.feedbackDate) + ')' : ''}</div>
                         <div style="font-size:13px;color:#333;">Material: ${esc(r.material)}</div>
                         ${fb}
                     </div>
@@ -362,7 +449,7 @@
                     renderTabs(); renderStudentData(0);
                     document.getElementById('loading-screen').style.display = 'none';
                     document.getElementById('header').style.display = 'block';
-                    document.getElementById('main-content').style.display = 'block';
+                    document.getElementById('main-content').style.display = 'block'; document.getElementById('brand-bar').style.display = 'block';
                 } else { document.getElementById('loading-text').innerText = result.message || "找不到您的專屬課程資料，請確認是否綁定。"; }
             } catch (err) { document.getElementById('loading-text').innerText = "連線失敗，請檢查網路或稍後再試。"; }
         }
@@ -429,10 +516,10 @@
                 const next = document.getElementById('progress-next');
                 const atFirst = currentProgressIndex === 0;
                 const atLast = currentProgressIndex === progressRecords.length - 1;
-                prev.style.borderColor = atFirst ? '#CED4DA' : '#E63946';
-                prev.style.color = atFirst ? '#CED4DA' : '#E63946';
-                next.style.borderColor = atLast ? '#CED4DA' : '#E63946';
-                next.style.color = atLast ? '#CED4DA' : '#E63946';
+                prev.style.borderColor = atFirst ? 'var(--line)' : 'var(--blush)';
+                prev.style.color = atFirst ? 'var(--line)' : 'var(--blush)';
+                next.style.borderColor = atLast ? 'var(--line)' : 'var(--blush)';
+                next.style.color = atLast ? 'var(--line)' : 'var(--blush)';
             } else {
                 nav.style.display = 'none';
             }
@@ -471,7 +558,7 @@
 
                 if (course.cancelled) {
                     // 👑 已請假的課：日期時間劃掉 + 灰色 + 「請假」標籤 (保留時段、標註請假)
-                    item.innerHTML = `<div class="class-info"><span class="class-date" style="text-decoration:line-through; color:#6C757D;">${course.dateStr}（${course.weekday}）${course.timeStr}</span><span class="class-type" style="color:#ADB5BD;">${data.courseType} Course</span></div>`;
+                    item.innerHTML = `<div class="class-info"><span class="class-date" style="text-decoration:line-through; color:var(--text-soft);">${course.dateStr}（${course.weekday}）${course.timeStr}</span><span class="class-type" style="color:#ADB5BD;">${data.courseType} Course</span></div>`;
                     const tag = document.createElement('span');
                     tag.innerText = '請假';
                     tag.style.cssText = 'padding:6px 14px; background:#F7C1C1; color:#791F1F; border-radius:8px; font-weight:bold; font-size:14px; white-space:nowrap;';
@@ -490,7 +577,7 @@
         }
 
         function handleCancelClass(eventId, startTimeMs, buttonElement) {
-            Swal.fire({ title: '確認請假？', text: "取消後將釋出此時段，確定要申請請假嗎？", icon: 'warning', showCancelButton: true, confirmButtonColor: '#E63946', cancelButtonText: '先不要' }).then(async (result) => {
+            Swal.fire({ title: '確認請假？', text: "取消後將釋出此時段，確定要申請請假嗎？", icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--blush)', cancelButtonText: '先不要' }).then(async (result) => {
                 if (result.isConfirmed) {
                     buttonElement.innerText = '處理中...'; buttonElement.disabled = true;
                     try {
