@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -284,7 +284,7 @@
                         } else {
                             showBookingPage();
                         }
-                    }, 1200);
+                    }, 600);
                 } else {
                     errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
                     btn.disabled = false; btn.innerText = '送出';
