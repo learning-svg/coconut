@@ -1,3 +1,22 @@
+
+
+移至內容
+透過螢幕閱讀器使用 Gmail
+第 1 個，共 2,143 個
+(無主旨)
+收件匣
+
+黃語萱 <climax1995830@gmail.com>
+附件
+下午12:10 (0 分鐘前)
+寄給 我
+
+
+
+
+從我的iPhone傳送
+ 1 個附件
+  •  已通過 Gmail 掃描檢查
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -238,15 +257,17 @@
             document.getElementById('loading-screen').style.display = 'none';
             const box = document.getElementById('special-view');
             box.style.display = 'block';
-            box.innerHTML = `<div style="padding:24px 18px;">
-                <div style="text-align:center; margin-bottom:20px;">
-                    <div style="font-size:40px;">📧</div>
-                    <div style="font-size:18px; font-weight:700; color:#333; margin-top:8px;">請先登記聯絡 Email</div>
-                    <div style="font-size:13px; color:var(--text-soft); margin-top:6px;">為確保重要通知不漏接，請留下您的 Email</div>
+            box.innerHTML = `<div class="sv-wrap">
+                <div style="text-align:center; margin-bottom:24px;">
+                    <div style="width:64px; height:64px; margin:0 auto 14px; border-radius:50%; border:2.5px solid var(--coffee); display:flex; align-items:center; justify-content:center;">
+                        <span style="font-family:'Baloo 2'; font-size:30px; font-weight:700; color:var(--coffee);">@</span>
+                    </div>
+                    <div class="sv-title">請先登記聯絡 Email</div>
+                    <div class="sv-sub">為確保重要通知不漏接，請留下您的 Email</div>
                 </div>
-                <input id="email-input" type="email" placeholder="example@gmail.com" style="width:100%; box-sizing:border-box; border:1.5px solid var(--coffee); border-radius:8px; padding:12px; font-size:15px; margin-bottom:14px;">
+                <input id="email-input" type="email" placeholder="example@gmail.com" class="sv-input">
                 <div id="email-error" style="color:var(--blush); font-size:13px; margin-bottom:10px; display:none;"></div>
-                <button id="email-submit" onclick="submitEmail()" style="width:100%; background:var(--blush); color:#FFF; border:none; border-radius:8px; padding:13px; font-size:16px; font-weight:700; cursor:pointer;">送出</button>
+                <button id="email-submit" onclick="submitEmail()" class="sv-btn">送出</button>
             </div>`;
         }
 
@@ -262,18 +283,27 @@
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=saveEmail&userId=${currentUserId}&email=${encodeURIComponent(email)}`);
                 const result = await res.json();
                 if (result.status === 'success') {
-                    // 👑 填完自動進入對應頁面
+                    // 👑 顯示成功過場畫面
+                    showEmailSuccess();
+                    // 依 nextView 準備下一頁資料，準備好後再切換
+                    let nextData = null;
                     if (pendingNextView === 'student') {
-                        // 重新抓學生專區資料
                         const r2 = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
-                        routeByResult(await r2.json());
-                    } else if (pendingNextView === 'pricing') {
-                        document.getElementById('special-view').style.display = 'none';
-                        showPricingPage();
-                    } else {
-                        document.getElementById('special-view').style.display = 'none';
-                        showBookingPage();
+                        nextData = await r2.json();
                     }
+                    // 停留 1.2 秒讓使用者看到成功訊息，再乾淨跳轉
+                    setTimeout(() => {
+                        const box = document.getElementById('special-view');
+                        box.innerHTML = '';
+                        box.style.display = 'none';
+                        if (pendingNextView === 'student') {
+                            routeByResult(nextData);
+                        } else if (pendingNextView === 'pricing') {
+                            showPricingPage();
+                        } else {
+                            showBookingPage();
+                        }
+                    }, 1200);
                 } else {
                     errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
                     btn.disabled = false; btn.innerText = '送出';
@@ -282,6 +312,19 @@
                 errEl.style.display = 'block'; errEl.innerText = '連線失敗，請重試';
                 btn.disabled = false; btn.innerText = '送出';
             }
+        }
+
+        // 👑 Email 登記成功過場畫面
+        function showEmailSuccess() {
+            const box = document.getElementById('special-view');
+            box.innerHTML = `<div class="sv-center" style="padding-top:100px;">
+                <div style="width:72px; height:72px; margin:0 auto 20px; border-radius:50%; background:var(--leaf); display:flex; align-items:center; justify-content:center;">
+                    <span style="color:#fff; font-size:38px; line-height:1;">&#10003;</span>
+                </div>
+                <div class="sv-title" style="font-size:20px;">登記成功！</div>
+                <div class="sv-sub">Email 已儲存，正在為您跳轉…</div>
+            </div>`;
+            box.style.display = 'block';
         }
 
         // 👑 價格 + 優惠頁 (Trial / 結訓)
@@ -334,6 +377,7 @@
                 studentDataList = result.data;
                 renderTabs(); renderStudentData(0);
                 document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('special-view').style.display = 'none';
                 document.getElementById('header').style.display = 'block';
                 document.getElementById('main-content').style.display = 'block'; document.getElementById('brand-bar').style.display = 'block';
             } else {
@@ -629,3 +673,5 @@
     </script>
 </body>
 </html>
+index.html
+目前顯示的是「index.html」。
