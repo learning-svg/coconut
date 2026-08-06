@@ -260,30 +260,17 @@
             const btn = document.getElementById('email-submit');
             btn.disabled = true; btn.innerText = '送出中...';
             try {
+                // 👑 saveEmail 已直接回傳對應資料 (學生專區/價格頁身分)，不需再打 getInit
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=saveEmail&userId=${currentUserId}&email=${encodeURIComponent(email)}`);
                 const result = await res.json();
-                if (result.status === 'success') {
-                    // 👑 顯示成功過場畫面
+                if (result.saved) {
                     showEmailSuccess();
-                    // 依 nextView 準備下一頁資料，準備好後再切換
-                    let nextData = null;
-                    if (pendingNextView === 'student') {
-                        const r2 = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
-                        nextData = await r2.json();
-                    }
-                    // 停留 1.2 秒讓使用者看到成功訊息，再乾淨跳轉
+                    // 資料已在 result，短暫過場後直接渲染，不再二次請求
                     setTimeout(() => {
                         const box = document.getElementById('special-view');
-                        box.innerHTML = '';
-                        box.style.display = 'none';
-                        if (pendingNextView === 'student') {
-                            routeByResult(nextData);
-                        } else if (pendingNextView === 'pricing') {
-                            showPricingPage();
-                        } else {
-                            showBookingPage();
-                        }
-                    }, 600);
+                        box.innerHTML = ''; box.style.display = 'none';
+                        routeByResult(result); // result 已含 role 與資料
+                    }, 500);
                 } else {
                     errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
                     btn.disabled = false; btn.innerText = '送出';
