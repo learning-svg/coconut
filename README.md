@@ -26,7 +26,11 @@
       body{ font-family:'Noto Sans TC',sans-serif; background:#FDFBF6 !important; color:var(--coffee-deep); padding:0 0 40px; -webkit-font-smoothing:antialiased; min-height:100vh; }
 
       /* 載入畫面 */
-      #loading-screen{ position:fixed; inset:0; background:#FDFBF6; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
+      #loading-screen{ position:fixed; inset:0; background:#FDFBF6; display:flex; flex-direction:column; align-items:center; z-index:9999; overflow:hidden; }
+      .skl{ background:linear-gradient(90deg, #EFE9DF 25%, #F7F3EC 50%, #EFE9DF 75%); background-size:200% 100%; border-radius:8px; animation:skl-shine 1.3s ease-in-out infinite; }
+      .skl-card{ background:#FDFBF6; border:2px solid var(--line); border-radius:16px; padding:20px; margin-bottom:16px; }
+      @keyframes skl-shine{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+      #loading-text{ color:var(--text-soft); font-size:14px; }
       .spinner{ width:40px; height:40px; border:3px solid var(--line); border-top-color:var(--coffee); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; }
       #loading-text{ color:var(--text-soft); font-size:14px; }
       @keyframes spin{ to{ transform:rotate(360deg); } }
@@ -107,7 +111,20 @@
 </head>
 <body>
 
-    <div id="loading-screen"><div class="spinner"></div><div id="loading-text">正在載入專屬學習儀表板...</div></div>
+    <div id="loading-screen">
+        <div class="brand-bar" style="width:100%; max-width:500px;">
+            <div class="brand-name">Coconut English</div>
+            <div class="brand-sub">椰菲英文 · 專屬學習區</div>
+        </div>
+        <div style="width:100%; max-width:500px; padding:20px 18px;">
+            <div style="text-align:center; margin-bottom:20px;">
+                <div class="skl" style="width:120px; height:26px; margin:0 auto 12px;"></div>
+                <div class="skl" style="width:200px; height:36px; margin:0 auto; border-radius:22px;"></div>
+            </div>
+            <div class="skl-card"><div class="skl" style="width:60%; height:18px; margin-bottom:12px;"></div><div class="skl" style="width:90%; height:14px; margin-bottom:8px;"></div><div class="skl" style="width:80%; height:14px;"></div></div>
+            <div class="skl-card"><div class="skl" style="width:50%; height:18px; margin-bottom:12px;"></div><div class="skl" style="width:100%; height:14px; margin-bottom:8px;"></div><div class="skl" style="width:70%; height:14px;"></div></div>
+        </div>
+    </div>
 
     <!-- 特殊畫面容器 (email註冊 / 價格優惠 / 預約體驗 / 退費擋) -->
     <div id="special-view" style="display:none;"></div>
