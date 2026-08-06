@@ -1,22 +1,3 @@
-
-
-移至內容
-透過螢幕閱讀器使用 Gmail
-第 1 個，共 2,143 個
-(無主旨)
-收件匣
-
-黃語萱 <climax1995830@gmail.com>
-附件
-下午12:10 (0 分鐘前)
-寄給 我
-
-
-
-
-從我的iPhone傳送
- 1 個附件
-  •  已通過 Gmail 掃描檢查
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -674,4 +655,3 @@
 </body>
 </html>
 index.html
-目前顯示的是「index.html」。
