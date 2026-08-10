@@ -605,7 +605,7 @@
         }
 
         function handleCancelClass(eventId, startTimeMs, buttonElement) {
-            Swal.fire({ title: '確認請假？', text: "取消後將釋出此時段，確定要申請請假嗎？", icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--blush)', cancelButtonText: '先不要' }).then(async (result) => {
+            Swal.fire({ title: '確認請假？', icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--blush)', confirmButtonText: 'OK', cancelButtonText: '先不要' }).then(async (result) => {
                 if (result.isConfirmed) {
                     buttonElement.innerText = '處理中...'; buttonElement.disabled = true;
                     try {
