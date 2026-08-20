@@ -332,12 +332,12 @@
             const box = document.getElementById('special-view');
             box.style.display = 'block';
             box.innerHTML = `<div class="sv-wrap">
-                <div class="sv-section-title" style="margin-bottom:18px;">課程付款前的須知項目</div>
+                <div class="sv-section-title" style="margin-bottom:18px;">課程的須知項目</div>
                 <div style="max-height:52vh; overflow-y:auto; border:2px solid var(--coffee); border-radius:14px; padding:18px; margin-bottom:18px; background:#FDFBF6;">
                     ${itemsHtml}
                 </div>
                 <div id="agree-error" style="color:var(--blush); font-size:13px; margin-bottom:10px; display:none;"></div>
-                <button id="agree-btn" onclick="submitAgreement()" class="sv-btn" style="line-height:1.4;">我已閱讀並同意課程須知、退費辦法及相關規範</button>
+                <button id="agree-btn" onclick="submitAgreement()" class="sv-btn" style="line-height:1.4;">我已閱讀並同意課程須知項目</button>
             </div>`;
         }
 
