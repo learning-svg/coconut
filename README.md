@@ -229,6 +229,7 @@
             if (role === 'teacher') { renderTeacherResult(result); return; }
             if (role === 'refunded') { showRefundedBlock(); return; }
             if (role === 'needEmail') { showEmailRegister(result.nextView); return; }
+            if (role === 'needAgreement') { showAgreementPage(result.nextView); return; }
             if (role === 'pricing') { showPricingPage(); return; }
             if (role === 'booking') { showBookingPage(); return; }
             // role === 'student'
@@ -309,6 +310,65 @@
                 <div class="sv-sub">Email 已儲存，正在為您跳轉…</div>
             </div>`;
             box.style.display = 'block';
+        }
+
+        // 👑 課程須知同意頁 (第一次登入、填完 email 後顯示)
+        let agreementNextView = null;
+        function showAgreementPage(nextView) {
+            agreementNextView = nextView;
+            document.getElementById('loading-screen').style.display = 'none';
+            const terms = [
+                "課程請假、改期、延後上課者，請於預定上課時間一小時前通知；課程預定時間開始後未通知者，即收取該堂課程全額費用。",
+                "同一上課時間請假超過(含)兩次者，將無法保留該時段預約，請重新告知預約課程。",
+                "本平台的課程內容和教材之相關檔案為通用教材，且平台保有完整著作權與主導權，課程可以經與平台溝通合意後微調；然高度客製化內容，請諮詢平台取得更一步報價。客製化內容，若超出可服務範圍，本平台有權利拒絕要求或終止契約。",
+                "課程退款項目為剩餘課程照比例退還，並酌收新臺幣200元的手續費用。",
+                "所有課程之使用期限為1年。如有特別需求，請盡早通知，可做展延。",
+                "目前任職、兼職或提供服務於其他線上英文教育平台者，應於購課前主動告知平台，平台得依實際課程服務及資訊安全需求進行評估，如隱匿、虛偽陳述者，平台有權解除契約。",
+                "學生不得將本平台教材、PPT、講義、課程架構、教學活動或教師私人相關資訊提供之其他內容，擅自影印、掃描、攝影或以其他方法「重製」講義及試卷內容；於課堂中擅自錄音、錄影，或將錄音錄影檔製作成光碟、數位檔案；將講義內容、筆記或錄音檔上傳至網路（如社群媒體、拍賣平台、雲端硬碟）進行「公開傳輸」或販售「散布」；將講義內容進行改寫、解構後另行編著為參考書等「改作」行為，或其他違反著作權法之行為。若有違反，本平台得終止契約，且毋庸退還剩餘課程費用，並要求學生另支付課程委任費用3倍之懲罰性違約金。"
+            ];
+            let itemsHtml = terms.map((t, i) =>
+                `<div style="display:flex; gap:8px; margin-bottom:14px;"><span style="font-weight:700; color:var(--coffee); flex-shrink:0;">${i+1}.</span><span style="font-size:13px; line-height:1.7; color:var(--coffee-deep);">${t}</span></div>`
+            ).join('');
+            const box = document.getElementById('special-view');
+            box.style.display = 'block';
+            box.innerHTML = `<div class="sv-wrap">
+                <div class="sv-section-title" style="margin-bottom:18px;">課程付款前的須知項目</div>
+                <div style="max-height:52vh; overflow-y:auto; border:2px solid var(--coffee); border-radius:14px; padding:18px; margin-bottom:18px; background:#FDFBF6;">
+                    ${itemsHtml}
+                </div>
+                <div id="agree-error" style="color:var(--blush); font-size:13px; margin-bottom:10px; display:none;"></div>
+                <button id="agree-btn" onclick="submitAgreement()" class="sv-btn" style="line-height:1.4;">我已閱讀並同意課程須知、退費辦法及相關規範</button>
+            </div>`;
+        }
+
+        async function submitAgreement() {
+            const btn = document.getElementById('agree-btn');
+            const errEl = document.getElementById('agree-error');
+            btn.disabled = true; btn.innerText = '處理中...';
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=saveAgreement&userId=${currentUserId}`);
+                const result = await res.json();
+                if (result.status === 'success') {
+                    // 同意成功 → 進入對應頁面
+                    const box = document.getElementById('special-view');
+                    box.innerHTML = ''; box.style.display = 'none';
+                    if (agreementNextView === 'student') {
+                        // 重新抓學生資料進專區
+                        const r2 = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
+                        routeByResult(await r2.json());
+                    } else if (agreementNextView === 'pricing') {
+                        showPricingPage();
+                    } else {
+                        showBookingPage();
+                    }
+                } else {
+                    errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
+                    btn.disabled = false; btn.innerText = '我已閱讀並同意課程須知、退費辦法及相關規範';
+                }
+            } catch (err) {
+                errEl.style.display = 'block'; errEl.innerText = '連線失敗，請重試';
+                btn.disabled = false; btn.innerText = '我已閱讀並同意課程須知、退費辦法及相關規範';
+            }
         }
 
         // 👑 價格 + 優惠頁 (Trial / 結訓)
