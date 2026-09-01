@@ -332,13 +332,26 @@
             const box = document.getElementById('special-view');
             box.style.display = 'block';
             box.innerHTML = `<div class="sv-wrap">
-                <div class="sv-section-title" style="margin-bottom:18px;">課程的須知項目</div>
-                <div style="max-height:52vh; overflow-y:auto; border:2px solid var(--coffee); border-radius:14px; padding:18px; margin-bottom:18px; background:#FDFBF6;">
+                <div class="sv-section-title" style="margin-bottom:18px;">課程須知項目</div>
+                <div style="max-height:48vh; overflow-y:auto; border:2px solid var(--coffee); border-radius:14px; padding:18px; margin-bottom:16px; background:#FDFBF6;">
                     ${itemsHtml}
                 </div>
+                <label style="display:flex; align-items:center; gap:10px; margin-bottom:16px; cursor:pointer; padding:4px 2px;">
+                    <input type="checkbox" id="agree-check" onchange="toggleAgreeBtn()" style="width:22px; height:22px; accent-color:var(--leaf); flex-shrink:0; cursor:pointer;">
+                    <span style="font-size:14px; font-weight:600; color:var(--coffee-deep);">我已閱讀並同意課程須知項目</span>
+                </label>
                 <div id="agree-error" style="color:var(--blush); font-size:13px; margin-bottom:10px; display:none;"></div>
-                <button id="agree-btn" onclick="submitAgreement()" class="sv-btn" style="line-height:1.4;">我已閱讀並同意課程須知項目</button>
+                <button id="agree-btn" onclick="submitAgreement()" class="sv-btn" disabled style="opacity:0.45; cursor:not-allowed;">確認同意</button>
             </div>`;
+        }
+
+        // 👑 勾選後才啟用「確認同意」按鈕
+        function toggleAgreeBtn() {
+            const checked = document.getElementById('agree-check').checked;
+            const btn = document.getElementById('agree-btn');
+            btn.disabled = !checked;
+            btn.style.opacity = checked ? '1' : '0.45';
+            btn.style.cursor = checked ? 'pointer' : 'not-allowed';
         }
 
         async function submitAgreement() {
@@ -363,11 +376,11 @@
                     }
                 } else {
                     errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
-                    btn.disabled = false; btn.innerText = '我已閱讀並同意課程須知、退費辦法及相關規範';
+                    btn.disabled = false; btn.innerText = '確認同意'; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
                 }
             } catch (err) {
                 errEl.style.display = 'block'; errEl.innerText = '連線失敗，請重試';
-                btn.disabled = false; btn.innerText = '我已閱讀並同意課程須知、退費辦法及相關規範';
+                btn.disabled = false; btn.innerText = '確認同意'; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
             }
         }
 
