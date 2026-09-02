@@ -473,7 +473,7 @@
         function renderTeacher() {
             document.getElementById('t-name').innerText = teacherData.teacherName;
             // 分頁1 今日
-            document.getElementById('t-summary').innerText = `${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
+            document.getElementById('t-summary').innerText = `Today · ${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
             document.getElementById('t-tab-today').innerHTML = renderScheduleCards(teacherData.today, "No classes today.");
             // 分頁3 明日
             document.getElementById('t-tab-tomorrow').innerHTML = renderScheduleCards(teacherData.tomorrow, "No classes tomorrow.");
@@ -539,6 +539,17 @@
             document.getElementById('t-tab-today').style.display = (idx === 0) ? 'block' : 'none';
             document.getElementById('t-tab-feedback').style.display = (idx === 1) ? 'block' : 'none';
             document.getElementById('t-tab-tomorrow').style.display = (idx === 2) ? 'block' : 'none';
+            // 👑 日期膠囊跟著分頁更新
+            const sum = document.getElementById('t-summary');
+            if (idx === 0) {
+                sum.style.display = 'inline-flex';
+                sum.innerText = `Today · ${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
+            } else if (idx === 2) {
+                sum.style.display = 'inline-flex';
+                sum.innerText = `Tomorrow · ${teacherData.tomorrowDateStr} · ${teacherData.tomorrow.length} classes`;
+            } else {
+                sum.style.display = 'none'; // Feedback 分頁不顯示日期膠囊
+            }
         }
 
         async function fetchDashboardData(userId) {
