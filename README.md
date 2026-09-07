@@ -511,12 +511,17 @@
                 let hwBlock;
                 if (r.homework && r.homework.hasSubmission) {
                     const link = (r.homework.fileUrl && r.homework.fileUrl !== '無附件')
-                        ? `<div style="font-size:13px;"><a href="${esc(r.homework.fileUrl)}" target="_blank" style="color:var(--blush);font-weight:bold;">Open homework file</a></div>` : '';
-                    const msg = r.homework.comment ? `<div style="font-size:13px;color:#333;">Message: ${esc(r.homework.comment)}</div>` : '';
-                    hwBlock = `<div style="background:#FBF0E4;padding:10px;border-radius:8px;border:1px solid var(--blush);">
+                        ? `<div style="font-size:13px;margin-top:4px;"><a href="${esc(r.homework.fileUrl)}" target="_blank" style="color:var(--blush);font-weight:bold;">Open homework file</a></div>` : '';
+                    // 👑 學生留言獨立成醒目區塊 (綠色，與作業檔案分開)
+                    const msgBlock = r.homework.comment
+                        ? `<div style="background:#EEF2E4;padding:10px;border-radius:8px;border:1px solid var(--leaf);margin-bottom:8px;">
+                               <div style="font-size:12px;color:var(--leaf);font-weight:bold;margin-bottom:3px;">💬 Student's Message / 學生留言</div>
+                               <div style="font-size:13px;color:#333;line-height:1.5;">${esc(r.homework.comment)}</div>
+                           </div>` : '';
+                    hwBlock = `${msgBlock}<div style="background:#FBF0E4;padding:10px;border-radius:8px;border:1px solid var(--blush);">
                         <div style="font-size:12px;color:var(--blush);font-weight:bold;">📤 Homework submitted</div>
                         <div style="font-size:12px;color:var(--blush);">🕐 ${esc(r.homework.submittedAt)}</div>
-                        ${msg}${link}
+                        ${link}
                     </div>`;
                 } else {
                     hwBlock = `<div style="background:#F1EFE8;padding:10px;border-radius:8px;border:1px solid #B4B2A9;font-size:13px;color:#5F5E5A;">📤 No homework submission yet</div>`;
