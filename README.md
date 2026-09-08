@@ -474,9 +474,11 @@
             document.getElementById('t-name').innerText = teacherData.teacherName;
             // 分頁1 今日
             document.getElementById('t-summary').innerText = `Today · ${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
-            document.getElementById('t-tab-today').innerHTML = renderScheduleCards(teacherData.today, "No classes today.");
+            // 👑 老師填寫可上課時間的按鈕 (連到另一個 LIFF 表單)
+            const availBtn = `<a href="https://liff.line.me/2009789905-1PJRkuCz" target="_blank" style="display:block; text-align:center; background:var(--leaf); color:#fff; text-decoration:none; padding:13px; border-radius:12px; font-family:'Baloo 2'; font-weight:700; font-size:15px; margin-bottom:16px;">📅 Update My Available Time / 填寫可上課時間</a>`;
+            document.getElementById('t-tab-today').innerHTML = availBtn + renderScheduleCards(teacherData.today, "No classes today.");
             // 分頁3 明日
-            document.getElementById('t-tab-tomorrow').innerHTML = renderScheduleCards(teacherData.tomorrow, "No classes tomorrow.");
+            document.getElementById('t-tab-tomorrow').innerHTML = availBtn + renderScheduleCards(teacherData.tomorrow, "No classes tomorrow.");
             // 分頁2 回饋作業
             document.getElementById('t-tab-feedback').innerHTML = renderFeedbackCards(teacherData.studentRecords);
         }
