@@ -186,7 +186,6 @@
         <div class="tabs-container" id="teacher-tabs">
             <div class="tab active" data-ttab="0" onclick="switchTeacherTab(0)">Today</div>
             <div class="tab" data-ttab="1" onclick="switchTeacherTab(1)">Feedback &amp; HW</div>
-            <div class="tab" data-ttab="2" onclick="switchTeacherTab(2)">Tomorrow</div>
         </div>
     </div>
     <div class="content-container" id="teacher-content" style="display:none;">
@@ -196,7 +195,6 @@
         </div>
         <div id="t-tab-today"></div>
         <div id="t-tab-feedback" style="display:none;"></div>
-        <div id="t-tab-tomorrow" style="display:none;"></div>
     </div>
     <script>
         // ==========================================
@@ -478,7 +476,6 @@
             const availBtn = `<a href="https://liff.line.me/2009789905-1PJRkuCz" target="_blank" style="display:block; text-align:center; background:var(--leaf); color:#fff; text-decoration:none; padding:13px; border-radius:12px; font-family:'Baloo 2'; font-weight:700; font-size:15px; margin-bottom:16px;">📅 Update My Available Time / 填寫可上課時間</a>`;
             document.getElementById('t-tab-today').innerHTML = availBtn + renderScheduleCards(teacherData.today, "No classes today.");
             // 分頁3 明日
-            document.getElementById('t-tab-tomorrow').innerHTML = availBtn + renderScheduleCards(teacherData.tomorrow, "No classes tomorrow.");
             // 分頁2 回饋作業
             document.getElementById('t-tab-feedback').innerHTML = renderFeedbackCards(teacherData.studentRecords);
         }
@@ -545,15 +542,11 @@
             document.querySelector(`#teacher-tabs .tab[data-ttab="${idx}"]`).classList.add('active');
             document.getElementById('t-tab-today').style.display = (idx === 0) ? 'block' : 'none';
             document.getElementById('t-tab-feedback').style.display = (idx === 1) ? 'block' : 'none';
-            document.getElementById('t-tab-tomorrow').style.display = (idx === 2) ? 'block' : 'none';
             // 👑 日期膠囊跟著分頁更新
             const sum = document.getElementById('t-summary');
             if (idx === 0) {
                 sum.style.display = 'inline-flex';
                 sum.innerText = `Today · ${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
-            } else if (idx === 2) {
-                sum.style.display = 'inline-flex';
-                sum.innerText = `Tomorrow · ${teacherData.tomorrowDateStr} · ${teacherData.tomorrow.length} classes`;
             } else {
                 sum.style.display = 'none'; // Feedback 分頁不顯示日期膠囊
             }
