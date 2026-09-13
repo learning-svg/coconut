@@ -435,8 +435,25 @@
                 document.getElementById('special-view').style.display = 'none';
                 document.getElementById('header').style.display = 'block';
                 document.getElementById('main-content').style.display = 'block'; document.getElementById('brand-bar').style.display = 'block';
+                // 👑 若為第一段 (partial)，在背景抓完整資料 (課表+進度) 後補上
+                if (result.partial) loadDetailsInBackground();
             } else {
                 document.getElementById('loading-text').innerText = result.message || "找不到您的專屬課程資料，請確認是否綁定。";
+            }
+        }
+
+        // 👑 分段載入第二段：背景抓課表與上課進度，抓到後重新渲染
+        async function loadDetailsInBackground() {
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getDetails&userId=${currentUserId}`);
+                const full = await res.json();
+                if (full.status === 'success' && full.data && full.data.length > 0) {
+                    const idx = currentTabIndex; // 保留使用者目前看的分頁
+                    studentDataList = full.data;
+                    renderStudentData(idx < full.data.length ? idx : 0);
+                }
+            } catch (err) {
+                console.log('背景載入詳細資料失敗', err);
             }
         }
 
@@ -654,14 +671,21 @@
             } else {
                 document.getElementById('display-remaining').innerText = `剩餘堂數：${data.remainingClasses} 堂`;
             }
-            // 👑 最近進度紀錄 (最多2筆，可箭頭切換)；相容舊資料退回單筆
-            progressRecords = (data.recentRecords && data.recentRecords.length > 0) ? data.recentRecords : [data.latestProgress];
+            // 👑 最近進度紀錄；第一段 (partial) 尚無資料時顯示載入中
+            if (data.latestProgress === null && (!data.recentRecords || data.recentRecords.length === 0)) {
+                progressRecords = [{ material: "載入中...", feedbackEn: "Loading...", feedbackZh: "", homework: "", classDate: "" }];
+            } else {
+                progressRecords = (data.recentRecords && data.recentRecords.length > 0) ? data.recentRecords : [data.latestProgress];
+            }
             currentProgressIndex = 0;
             renderProgress();
 
             const listContainer = document.getElementById('upcoming-list'); listContainer.innerHTML = '';
             if (data.upcomingClasses.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; color:#6c757d; padding:15px 0;">目前未來兩週尚無排課紀錄喔！</div>';
+                // 👑 第一段尚未取得課表 → 顯示載入中；已取得但真的沒課 → 顯示無排課
+                listContainer.innerHTML = (data.latestProgress === null)
+                    ? '<div style="text-align:center; color:var(--text-soft); padding:15px 0;">課表載入中...</div>'
+                    : '<div style="text-align:center; color:var(--text-soft); padding:15px 0;">目前未來一週尚無排課紀錄喔！</div>';
                 return;
             }
 
