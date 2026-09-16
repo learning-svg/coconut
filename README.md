@@ -8,9 +8,6 @@
 
     <meta name="color-scheme" content="light only">
     <meta name="supported-color-schemes" content="light">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
       :root{
         color-scheme: light only;
@@ -23,7 +20,7 @@
       @media (prefers-color-scheme: dark){ :root{ color-scheme: light only; } }
       html{ background:#FDFBF6 !important; -webkit-text-size-adjust:100%; forced-color-adjust:none; }
       *{ box-sizing:border-box; margin:0; padding:0; forced-color-adjust:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      body{ font-family:'Noto Sans TC',sans-serif; background:#FDFBF6 !important; color:var(--coffee-deep); padding:0 0 40px; -webkit-font-smoothing:antialiased; min-height:100vh; }
+      body{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; background:#FDFBF6 !important; color:var(--coffee-deep); padding:0 0 40px; -webkit-font-smoothing:antialiased; min-height:100vh; }
 
       /* 載入畫面 */
       #loading-screen{ position:fixed; inset:0; background:#FDFBF6; display:flex; flex-direction:column; align-items:center; z-index:9999; overflow:hidden; }
@@ -39,19 +36,19 @@
       .header{ background:#FDFBF6; padding-top:14px; position:sticky; top:0; z-index:100; }
       .tabs-container{ display:flex; gap:6px; overflow-x:auto; padding:0 18px; scrollbar-width:none; border-bottom:1.5px solid var(--coffee-light); }
       .tabs-container::-webkit-scrollbar{ display:none; }
-      .tab{ font-family:'Baloo 2'; font-weight:600; font-size:15px; padding:11px 22px 12px; border-radius:14px 14px 0 0; white-space:nowrap; color:var(--text-soft); cursor:pointer; border:1.5px solid transparent; border-bottom:none; }
+      .tab{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-weight:600; font-size:15px; padding:11px 22px 12px; border-radius:14px 14px 0 0; white-space:nowrap; color:var(--text-soft); cursor:pointer; border:1.5px solid transparent; border-bottom:none; }
       .tab.active{ color:var(--coffee-deep); border-color:var(--coffee-light); background:#FDFBF6; margin-bottom:-1.5px; }
 
       .content-container{ padding:20px 18px; }
 
       /* 學生標題 + 堂數膠囊 */
       .student-summary{ text-align:center; margin-bottom:20px; }
-      .student-summary h2{ font-family:'Baloo 2'; font-weight:700; font-size:24px; color:var(--coffee-deep); margin-bottom:10px; }
+      .student-summary h2{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-weight:700; font-size:24px; color:var(--coffee-deep); margin-bottom:10px; }
       .badge-pill{ display:inline-flex; align-items:center; gap:8px; background:#FDFBF6; border:2px solid var(--coffee); border-radius:22px; padding:6px 18px; font-size:14px; font-weight:700; color:var(--coffee-deep); }
 
       /* 卡片 */
       .card{ background:#FDFBF6; border-radius:16px; padding:20px; margin-bottom:16px; border:2px solid var(--coffee); }
-      .card-title{ font-family:'Baloo 2'; font-weight:700; font-size:17px; color:var(--coffee-deep); margin-bottom:14px; }
+      .card-title{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-weight:700; font-size:17px; color:var(--coffee-deep); margin-bottom:14px; }
 
       /* 箭頭切換 */
       .prog-arrow{ width:30px; height:30px; border-radius:50%; border:2px solid var(--coffee); color:var(--coffee); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; cursor:pointer; background:#FDFBF6; user-select:none; }
@@ -73,11 +70,11 @@
       .class-item{ display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1.5px solid var(--line); }
       .class-item:last-child{ border-bottom:none; }
       .class-info{ display:flex; flex-direction:column; gap:3px; }
-      .class-date{ font-family:'Baloo 2'; font-weight:600; font-size:16px; color:var(--coffee-deep); }
+      .class-date{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-weight:600; font-size:16px; color:var(--coffee-deep); }
       .class-type{ font-size:12px; color:var(--text-soft); }
 
       /* 按鈕 */
-      .btn-cancel{ background:#FDFBF6; border:2px solid var(--coffee); color:var(--coffee); padding:8px 16px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; font-family:'Noto Sans TC'; }
+      .btn-cancel{ background:#FDFBF6; border:2px solid var(--coffee); color:var(--coffee); padding:8px 16px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; }
       .btn-cancel:active{ background:var(--paper); }
       .btn-cancel:disabled{ background:var(--paper); border-color:var(--line); color:var(--text-soft); cursor:not-allowed; }
 
@@ -85,28 +82,28 @@
       .cheer{ display:flex; align-items:center; gap:12px; background:#FDFBF6; border:2px solid var(--coffee); border-radius:16px; padding:14px 18px; margin-bottom:16px; }
       .cheer .star{ font-size:22px; color:var(--star); flex-shrink:0; line-height:1; }
       .cheer .cheer-text{ flex:1; text-align:center; }
-      .cheer .en{ font-family:'Baloo 2'; font-weight:700; font-size:15px; color:var(--coffee); }
+      .cheer .en{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-weight:700; font-size:15px; color:var(--coffee); }
       .cheer .zh{ font-size:12px; color:var(--text-soft); margin-top:3px; }
 
       /* 品牌條 */
       .brand-bar{ padding:16px 18px 4px; }
-      .brand-name{ font-family:'Baloo 2'; font-weight:700; font-size:18px; color:var(--coffee-deep); }
+      .brand-name{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-weight:700; font-size:18px; color:var(--coffee-deep); }
       .brand-sub{ font-size:11px; color:var(--text-soft); margin-top:-2px; }
 
       /* 特殊頁面 (email/價格/預約/退費) 共用 */
       .sv-wrap{ padding:24px 18px; }
       .sv-center{ text-align:center; padding:50px 24px; color:var(--text-soft); }
       .sv-emoji{ font-size:44px; margin-bottom:14px; }
-      .sv-title{ font-family:'Baloo 2'; font-size:18px; font-weight:700; color:var(--coffee-deep); margin-bottom:8px; }
+      .sv-title{ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-size:18px; font-weight:700; color:var(--coffee-deep); margin-bottom:8px; }
       .sv-sub{ font-size:14px; color:var(--text-soft); line-height:1.5; }
-      .sv-input{ width:100%; border:2px solid var(--coffee); border-radius:12px; padding:12px; font-size:15px; margin-bottom:14px; background:#FDFBF6; color:var(--coffee-deep); font-family:'Noto Sans TC'; }
-      .sv-btn{ width:100%; background:var(--blush); color:#fff; border:none; border-radius:12px; padding:13px; font-size:16px; font-weight:700; cursor:pointer; font-family:'Baloo 2'; }
+      .sv-input{ width:100%; border:2px solid var(--coffee); border-radius:12px; padding:12px; font-size:15px; margin-bottom:14px; background:#FDFBF6; color:var(--coffee-deep); font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; }
+      .sv-btn{ width:100%; background:var(--blush); color:#fff; border:none; border-radius:12px; padding:13px; font-size:16px; font-weight:700; cursor:pointer; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; }
       .price-card{ background:#FDFBF6; border:2px solid var(--coffee); border-radius:16px; padding:18px; margin-bottom:20px; }
       .price-row{ display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1.5px solid var(--line); }
       .price-row:last-child{ border-bottom:none; }
       .price-name{ font-size:15px; font-weight:600; color:var(--coffee-deep); }
       .price-val{ font-size:15px; color:var(--blush); font-weight:700; }
-      .sv-section-title{ text-align:center; font-family:'Baloo 2'; font-size:20px; font-weight:700; color:var(--coffee-deep); margin-bottom:16px; }
+      .sv-section-title{ text-align:center; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Helvetica Neue","Microsoft JhengHei",sans-serif; font-size:20px; font-weight:700; color:var(--coffee-deep); margin-bottom:16px; }
     </style>
 </head>
 <body>
@@ -169,7 +166,7 @@
 
         <div class="card">
             <h3 class="card-title">繳交作業 / 留言給老師</h3>
-            <textarea id="hw-message" placeholder="老師好，這是我的功課 (Teacher, this is my homework...)" style="width:100%; height:70px; margin-bottom:14px; border-radius:12px; border:2px solid var(--border-color); padding:10px; font-size:14px; resize:none; background:#FDFBF6; color:var(--coffee-deep); font-family:'Noto Sans TC';"></textarea>
+            <textarea id="hw-message" placeholder="老師好，這是我的功課 (Teacher, this is my homework...)" style="width:100%; height:70px; margin-bottom:14px; border-radius:12px; border:2px solid var(--border-color); padding:10px; font-size:14px; resize:none; background:#FDFBF6; color:var(--coffee-deep); font-family:inherit;"></textarea>
             <input type="file" id="hw-file" style="margin-bottom:14px; width:100%; font-size:14px;" accept="image/*,.pdf,.mp3">
             <button class="btn-cancel" style="width:100%; background:var(--blush); color:#fff; border-color:var(--blush);" onclick="submitHomeworkToTeacher()">安全送出給老師</button>
         </div>
@@ -256,7 +253,7 @@
             box.innerHTML = `<div class="sv-wrap">
                 <div style="text-align:center; margin-bottom:24px;">
                     <div style="width:64px; height:64px; margin:0 auto 14px; border-radius:50%; border:2.5px solid var(--coffee); display:flex; align-items:center; justify-content:center;">
-                        <span style="font-family:'Baloo 2'; font-size:30px; font-weight:700; color:var(--coffee);">@</span>
+                        <span style="font-size:30px; font-weight:700; color:var(--coffee);">@</span>
                     </div>
                     <div class="sv-title">請先登記聯絡 Email</div>
                     <div class="sv-sub">為確保重要通知不漏接，請留下您的 Email</div>
@@ -490,7 +487,7 @@
             // 分頁1 今日
             document.getElementById('t-summary').innerText = `Today · ${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
             // 👑 老師填寫可上課時間的按鈕 (連到另一個 LIFF 表單)
-            const availBtn = `<a href="https://liff.line.me/2009789905-1PJRkuCz" target="_blank" style="display:block; text-align:center; background:var(--leaf); color:#fff; text-decoration:none; padding:13px; border-radius:12px; font-family:'Baloo 2'; font-weight:700; font-size:15px; margin-bottom:16px;">📅 Update My Available Time / 填寫可上課時間</a>`;
+            const availBtn = `<a href="https://liff.line.me/2009789905-1PJRkuCz" target="_blank" style="display:block; text-align:center; background:var(--leaf); color:#fff; text-decoration:none; padding:13px; border-radius:12px; font-weight:700; font-size:15px; margin-bottom:16px;">📅 Update My Available Time / 填寫可上課時間</a>`;
             document.getElementById('t-tab-today').innerHTML = availBtn + renderScheduleCards(teacherData.today, "No classes today.");
             // 分頁3 明日
             // 分頁2 回饋作業
