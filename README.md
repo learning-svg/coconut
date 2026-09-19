@@ -199,6 +199,29 @@
         // ==========================================
         const LIFF_ID = "2008845693-L2SUJz8X";
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztBUpKu11R_cPzDsRMLgzkbkdheqjNO7PqMon94X67Zx5ZTXRHq13lk0xg2NSVHSI-/exec";
+        // 👑 Cloudflare Worker (讀取類 API：getInit / getDetails / 老師端)
+        //    Worker 出錯或 8 秒沒回應 → 自動改走 GAS；要完全停用 Worker 把 USE_WORKER 改成 false
+        const WORKER_URL = "https://coconut-api.learning-6c8.workers.dev";
+        const USE_WORKER = true;
+
+        // 👑 讀取類請求統一入口：先試 Worker，失敗自動退回 GAS (寫入類仍直接打 GAS)
+        async function apiGet(action) {
+            const qs = `?action=${action}&userId=${encodeURIComponent(currentUserId)}`;
+            if (USE_WORKER && WORKER_URL) {
+                try {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 8000);
+                    const res = await fetch(WORKER_URL + qs, { signal: ctrl.signal });
+                    clearTimeout(timer);
+                    if (res.ok) return await res.json();
+                    console.log('Worker 回應 ' + res.status + '，改走 GAS');
+                } catch (err) {
+                    console.log('Worker 失敗，改走 GAS', err);
+                }
+            }
+            const res = await fetch(GAS_WEB_APP_URL + qs);
+            return await res.json();
+        }
 
         let studentDataList = [];
         let currentUserId = "";
@@ -212,8 +235,7 @@
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 currentUserId = (await liff.getProfile()).userId;
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
-                const result = await res.json();
+                const result = await apiGet('getInit');
                 routeByResult(result);
             } catch (err) { document.getElementById('loading-text').innerText = "LIFF 初始化失敗，請在 LINE 內開啟。"; }
         }
@@ -362,8 +384,7 @@
                     box.innerHTML = ''; box.style.display = 'none';
                     if (agreementNextView === 'student') {
                         // 重新抓學生資料進專區
-                        const r2 = await fetch(`${GAS_WEB_APP_URL}?action=getInit&userId=${currentUserId}`);
-                        routeByResult(await r2.json());
+                        routeByResult(await apiGet('getInit'));
                     } else if (agreementNextView === 'pricing') {
                         showPricingPage();
                     } else {
@@ -442,8 +463,7 @@
         // 👑 分段載入第二段：背景抓課表與上課進度，抓到後重新渲染
         async function loadDetailsInBackground() {
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getDetails&userId=${currentUserId}`);
-                const full = await res.json();
+                const full = await apiGet('getDetails');
                 if (full.status === 'success' && full.data && full.data.length > 0) {
                     const idx = currentTabIndex; // 保留使用者目前看的分頁
                     studentDataList = full.data;
@@ -472,8 +492,7 @@
         // ==========================================
         async function fetchTeacherData(userId) {
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getTeacherDashboard&userId=${userId}`);
-                const result = await res.json();
+                const result = await apiGet('getTeacherDashboard');
                 renderTeacherResult(result);
             } catch (err) { document.getElementById('loading-text').innerText = "Connection failed. Please try again."; }
         }
@@ -568,8 +587,7 @@
 
         async function fetchDashboardData(userId) {
             try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getDashboard&userId=${userId}`);
-                const result = await response.json();
+                const result = await apiGet('getDashboard');
                 if (result.status === 'success' && result.data.length > 0) {
                     studentDataList = result.data;
                     renderTabs(); renderStudentData(0);
