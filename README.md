@@ -171,7 +171,7 @@
             <button class="btn-cancel" style="width:100%; background:var(--blush); color:#fff; border-color:var(--blush);" onclick="submitHomeworkToTeacher()">安全送出給老師</button>
         </div>
 
-        <div class="card"><h3 class="card-title">未來一週課表</h3><div id="upcoming-list"></div></div>
+        <div class="card"><h3 class="card-title">未來兩週課表</h3><div id="upcoming-list"></div></div>
     </div>
 
     <!-- 老師專用介面 (全英文) -->
@@ -702,7 +702,7 @@
                 // 👑 第一段尚未取得課表 → 顯示載入中；已取得但真的沒課 → 顯示無排課
                 listContainer.innerHTML = (data.latestProgress === null)
                     ? '<div style="text-align:center; color:var(--text-soft); padding:15px 0;">課表載入中...</div>'
-                    : '<div style="text-align:center; color:var(--text-soft); padding:15px 0;">目前未來一週尚無排課紀錄喔！</div>';
+                    : '<div style="text-align:center; color:var(--text-soft); padding:15px 0;">目前未來兩週尚無排課紀錄喔！</div>';
                 return;
             }
 
