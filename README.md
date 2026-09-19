@@ -199,14 +199,15 @@
         // ==========================================
         const LIFF_ID = "2008845693-L2SUJz8X";
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztBUpKu11R_cPzDsRMLgzkbkdheqjNO7PqMon94X67Zx5ZTXRHq13lk0xg2NSVHSI-/exec";
-        // 👑 Cloudflare Worker (讀取類 API：getInit / getDetails / 老師端)
+        // 👑 Cloudflare Worker (getInit / getDetails / 老師端 / 存 email / 同意須知)
         //    Worker 出錯或 8 秒沒回應 → 自動改走 GAS；要完全停用 Worker 把 USE_WORKER 改成 false
         const WORKER_URL = "https://coconut-api.learning-6c8.workers.dev";
         const USE_WORKER = true;
 
-        // 👑 讀取類請求統一入口：先試 Worker，失敗自動退回 GAS (寫入類仍直接打 GAS)
-        async function apiGet(action) {
-            const qs = `?action=${action}&userId=${encodeURIComponent(currentUserId)}`;
+        // 👑 請求統一入口：先試 Worker，失敗自動退回 GAS (請假、上傳作業仍直接打 GAS)
+        //    extra = 額外參數，例如 '&email=xxx'
+        async function apiGet(action, extra) {
+            const qs = `?action=${action}&userId=${encodeURIComponent(currentUserId)}${extra || ''}`;
             if (USE_WORKER && WORKER_URL) {
                 try {
                     const ctrl = new AbortController();
@@ -296,8 +297,7 @@
             btn.disabled = true; btn.innerText = '送出中...';
             try {
                 // 👑 saveEmail 已直接回傳對應資料 (學生專區/價格頁身分)，不需再打 getInit
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=saveEmail&userId=${currentUserId}&email=${encodeURIComponent(email)}`);
-                const result = await res.json();
+                const result = await apiGet('saveEmail', `&email=${encodeURIComponent(email)}`);
                 if (result.saved) {
                     showEmailSuccess();
                     // 資料已在 result，短暫過場後直接渲染，不再二次請求
@@ -376,13 +376,15 @@
             const errEl = document.getElementById('agree-error');
             btn.disabled = true; btn.innerText = '處理中...';
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=saveAgreement&userId=${currentUserId}`);
-                const result = await res.json();
+                const result = await apiGet('saveAgreement');
                 if (result.status === 'success') {
                     // 同意成功 → 進入對應頁面
                     const box = document.getElementById('special-view');
                     box.innerHTML = ''; box.style.display = 'none';
-                    if (agreementNextView === 'student') {
+                    if (result.role) {
+                        // 👑 Worker 已直接回傳下一個畫面的資料，不用再打一次 getInit
+                        routeByResult(result);
+                    } else if (agreementNextView === 'student') {
                         // 重新抓學生資料進專區
                         routeByResult(await apiGet('getInit'));
                     } else if (agreementNextView === 'pricing') {
