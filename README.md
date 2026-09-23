@@ -509,15 +509,73 @@
             document.getElementById('t-summary').innerText = `Today · ${teacherData.todayDateStr} · ${teacherData.today.length} classes`;
             // 👑 老師填寫可上課時間的按鈕 (連到另一個 LIFF 表單)
             const availBtn = `<a href="https://liff.line.me/2009789905-1PJRkuCz" target="_blank" style="display:block; text-align:center; background:var(--leaf); color:#fff; text-decoration:none; padding:13px; border-radius:12px; font-weight:700; font-size:15px; margin-bottom:16px;">📅 Update My Available Time / 填寫可上課時間</a>`;
-            document.getElementById('t-tab-today').innerHTML = availBtn + renderScheduleCards(teacherData.today, "No classes today.");
+            window.__todayAvailBtn = availBtn;
+            renderTodayTab();
+            if (!window.__todayTimer) window.__todayTimer = setInterval(renderTodayTab, 20000); // 20 秒重畫一次，按鈕到時間自動出現
             // 分頁3 明日
             // 分頁2 回饋作業
             document.getElementById('t-tab-feedback').innerHTML = renderFeedbackCards(teacherData.studentRecords);
         }
 
+        // 👑 v5：老師端「提醒上課」按鈕
+        //    上課時間到了才出現，按下後 3 分鐘內不能再按 (後端也會再擋一次)
+        const REMIND_COOLDOWN_MS = 3 * 60 * 1000;  // 按過之後等 3 分鐘
+        let remindCooldown = {};                   // courseKey → 可以再按的時間
+
+        function renderTodayTab() {
+            const box = document.getElementById('t-tab-today');
+            if (!box || !teacherData || !teacherData.today) return;
+            box.innerHTML = (window.__todayAvailBtn || '') + renderScheduleCards(teacherData.today, "No classes today.");
+        }
+
+        function remindButtonHtml(c, idx) {
+            if (c.cancelled || !c.startTimeMs) return '';
+            const now = Date.now();
+            if (now < c.startTimeMs) return '';                        // 還沒開始 → 不顯示
+            const waitMs = (remindCooldown[c.courseKey] || 0) - now;
+            const waiting = waitMs > 0;
+            const label = waiting
+                ? `Sent · wait ${Math.ceil(waitMs / 60000)} min`
+                : '&#128276; Remind student';
+            return `<button onclick="sendRemind(${idx})" ${waiting ? 'disabled' : ''} style="width:100%;margin-top:12px;padding:11px;border-radius:12px;font-weight:700;font-size:14px;cursor:${waiting ? 'not-allowed' : 'pointer'};font-family:inherit;border:2px solid ${waiting ? 'var(--line)' : 'var(--blush)'};background:${waiting ? 'var(--paper)' : 'var(--blush)'};color:${waiting ? 'var(--text-soft)' : '#fff'};">${label}</button>`;
+        }
+
+        async function sendRemind(idx) {
+            const c = teacherData.today[idx];
+            if (!c) return;
+            const confirmed = await Swal.fire({
+                title: 'Remind student?',
+                text: `A LINE message will be sent to ${c.courseKey} asking them to join the class now.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--blush)',
+                confirmButtonText: 'Send',
+                cancelButtonText: 'Cancel'
+            });
+            if (!confirmed.isConfirmed) return;
+
+            Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                const res = await fetch(`${WORKER_URL}?action=remindStudent&userId=${encodeURIComponent(currentUserId)}&courseKey=${encodeURIComponent(c.courseKey)}`);
+                const result = await res.json();
+                if (result.status === 'success') {
+                    remindCooldown[c.courseKey] = Date.now() + REMIND_COOLDOWN_MS;
+                    Swal.fire('Reminder sent', result.message, 'success');
+                } else if (result.status === 'cooldown') {
+                    remindCooldown[c.courseKey] = Date.now() + (result.waitSec || 180) * 1000;
+                    Swal.fire('Already sent', result.message, 'info');
+                } else {
+                    Swal.fire('Not sent', result.message || 'Please try again.', 'warning');
+                }
+            } catch (err) {
+                Swal.fire('Connection failed', 'Please check your network and try again.', 'error');
+            }
+            renderTodayTab();
+        }
+
         function renderScheduleCards(list, emptyMsg) {
             if (!list || list.length === 0) return `<div style="text-align:center;color:#6c757d;padding:20px 0;">${emptyMsg}</div>`;
-            return list.map(c => {
+            return list.map((c, idx) => {
                 if (c.cancelled) {
                     return `<div class="card" style="background:#F1EFE8;border-color:#B4B2A9;opacity:0.75;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -533,6 +591,7 @@
                         <div style="font-size:13px;font-weight:bold;color:#333;">${esc(c.timeStr)}</div>
                     </div>
                     ${c.material ? `<div style="font-size:13px;color:var(--text-soft);">${esc(c.material)}</div>` : ''}
+                    ${remindButtonHtml(c, idx)}
                 </div>`;
             }).join('');
         }
