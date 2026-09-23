@@ -204,7 +204,7 @@
         const WORKER_URL = "https://coconut-api.learning-6c8.workers.dev";
         const USE_WORKER = true;
 
-        // 👑 請求統一入口：先試 Worker，失敗自動退回 GAS (請假、上傳作業仍直接打 GAS)
+        // 👑 請求統一入口：先試 Worker，失敗自動退回 GAS
         //    extra = 額外參數，例如 '&email=xxx'
         async function apiGet(action, extra) {
             const qs = `?action=${action}&userId=${encodeURIComponent(currentUserId)}${extra || ''}`;
