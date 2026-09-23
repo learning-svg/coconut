@@ -553,7 +553,7 @@
                                <div style="font-size:13px;color:#333;line-height:1.5;">${esc(r.homework.comment)}</div>
                            </div>` : '';
                     hwBlock = `${msgBlock}<div style="background:#FBF0E4;padding:10px;border-radius:8px;border:1px solid var(--blush);">
-                        <div style="font-size:12px;color:var(--blush);font-weight:bold;">📤 Homework submitted</div>
+                        <div style="font-size:12px;color:var(--blush);font-weight:bold;">📤 Homework submitted${r.homework.course ? ' (' + esc(r.homework.course) + ')' : ''}</div>
                         <div style="font-size:12px;color:var(--blush);">🕐 ${esc(r.homework.submittedAt)}</div>
                         ${link}
                     </div>`;
@@ -642,11 +642,18 @@
                 hwContainer.style.display = 'flex';
                 const hwContentEl = document.getElementById('display-homework');
                 hwContentEl.innerHTML = '';
-                if (hwText.startsWith('http')) {
-                    const link = document.createElement('a');
-                    link.href = hwText; link.target = '_blank'; link.rel = 'noopener noreferrer';
-                    link.textContent = '點擊下載作業附件';
-                    hwContentEl.appendChild(link);
+                // 👑 老師表單可上傳最多 5 個檔案，多個檔案時表單會存成「網址1, 網址2, ...」
+                //    拆開後每個網址各給一個連結；只有 1 個檔案時維持原本文字
+                const hwUrls = hwText.split(/[,\s]+/).filter(u => /^https?:\/\//i.test(u));
+                if (hwText.startsWith('http') && hwUrls.length > 0) {
+                    hwUrls.forEach((u, i) => {
+                        const link = document.createElement('a');
+                        link.href = u; link.target = '_blank'; link.rel = 'noopener noreferrer';
+                        link.textContent = hwUrls.length === 1 ? '點擊下載作業附件' : `作業附件 ${i + 1}`;
+                        link.style.display = 'block';
+                        if (i > 0) link.style.marginTop = '6px';
+                        hwContentEl.appendChild(link);
+                    });
                 } else {
                     hwContentEl.textContent = hwText;
                 }
