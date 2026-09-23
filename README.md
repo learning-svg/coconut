@@ -556,6 +556,7 @@
 
             Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {
+                // 提醒上課走 Worker (需在 Cloudflare 設定 LINE_TOKEN)
                 const res = await fetch(`${WORKER_URL}?action=remindStudent&userId=${encodeURIComponent(currentUserId)}&courseKey=${encodeURIComponent(c.courseKey)}`);
                 const result = await res.json();
                 if (result.status === 'success') {
