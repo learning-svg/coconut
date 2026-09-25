@@ -230,6 +230,8 @@
         let progressRecords = [];      // 👑 最近 N 筆進度紀錄
         let currentProgressIndex = 0;  // 👑 目前顯示第幾筆 (0=最近)
         let teacherData = null;
+        // 👑 圖文選單「請假」入口：liff.line.me/<LIFF_ID>?view=leave → 直接開請假頁
+        const LEAVE_MODE = new URLSearchParams(window.location.search).get('view') === 'leave';
 
         async function initializeApp() {
             try {
@@ -338,7 +340,7 @@
                 "課程請假、改期、延後上課者，請於預定上課時間一小時前通知；課程預定時間開始後未通知者，即收取該堂課程全額費用。",
                 "同一上課時間請假超過(含)兩次者，將無法保留該時段預約，請重新告知預約課程。",
                 "本平台的課程內容和教材之相關檔案為通用教材，且平台保有完整著作權與主導權，課程可以經與平台溝通合意後微調；然高度客製化內容，請諮詢平台取得更一步報價。客製化內容，若超出可服務範圍，本平台有權利拒絕要求或終止契約。",
-                "課程退款項目為剩餘課程照比例退還，並酌收新臺幣200元的手續費用。",
+                "課程退款項目為剩餘課程照比例退還，並酌收新臺幣300元的手續費用。",
                 "所有課程之使用期限為1年。如有特別需求，請盡早通知，可做展延。",
                 "目前任職、兼職或提供服務於其他線上英文教育平台者，應於購課前主動告知平台，平台得依實際課程服務及資訊安全需求進行評估，如隱匿、虛偽陳述者，平台有權解除契約。",
                 "學生不得將本平台教材、PPT、講義、課程架構、教學活動或教師私人相關資訊提供之其他內容，擅自影印、掃描、攝影或以其他方法「重製」講義及試卷內容；於課堂中擅自錄音、錄影，或將錄音錄影檔製作成光碟、數位檔案；將講義內容、筆記或錄音檔上傳至網路（如社群媒體、拍賣平台、雲端硬碟）進行「公開傳輸」或販售「散布」；將講義內容進行改寫、解構後另行編著為參考書等「改作」行為，或其他違反著作權法之行為。若有違反，本平台得終止契約，且毋庸退還剩餘課程費用，並要求學生另支付課程委任費用3倍之懲罰性違約金。"
@@ -446,8 +448,63 @@
         }
 
 
+        // 👑 請假模式：只顯示「未來兩週的課 + 申請請假」，不進學生專區
+        async function renderLeaveMode(result) {
+            document.getElementById('loading-screen').style.display = 'none';
+            const box = document.getElementById('special-view');
+            box.style.display = 'block';
+            box.innerHTML = `<div class="sv-wrap"><div class="sv-section-title">申請請假</div>
+                <div class="card"><div style="text-align:center; color:var(--text-soft); padding:10px 0;">課表載入中...</div></div></div>`;
+
+            // 第一段沒有課表 → 補抓完整資料
+            let data = result.data;
+            if (!data || result.partial) {
+                const full = await apiGet('getDetails');
+                if (full.status === 'success' && full.data) data = full.data;
+            }
+            renderLeaveList(data);
+        }
+
+        function renderLeaveList(dataList) {
+            const box = document.getElementById('special-view');
+            let html = `<div class="sv-wrap"><div class="sv-section-title">申請請假</div>`;
+
+            let hasAny = false;
+            (dataList || []).forEach((student, sIdx) => {
+                const classes = student.upcomingClasses || [];
+                if (classes.length === 0) return;
+                hasAny = true;
+                html += `<div class="card"><h3 class="card-title">${esc(student.studentName)}</h3>`;
+                classes.forEach(course => {
+                    const line = `${course.dateStr}（${course.weekday}）${course.timeStr}`;
+                    if (course.cancelled) {
+                        html += `<div class="class-item"><div class="class-info"><span class="class-date" style="text-decoration:line-through; color:var(--text-soft);">${esc(line)}</span></div>
+                            <span style="padding:6px 14px; background:#F7C1C1; color:#791F1F; border-radius:8px; font-weight:bold; font-size:14px; white-space:nowrap;">已請假</span></div>`;
+                    } else if (course.canCancel) {
+                        html += `<div class="class-item"><div class="class-info"><span class="class-date">${esc(line)}</span></div>
+                            <button class="btn-cancel" onclick="handleCancelClass('${esc(course.eventId)}', ${course.startTimeMs}, this)">申請請假</button></div>`;
+                    } else {
+                        html += `<div class="class-item"><div class="class-info"><span class="class-date">${esc(line)}</span><span class="class-type">距離上課不到 30 分鐘</span></div>
+                            <button class="btn-cancel" disabled>不可取消</button></div>`;
+                    }
+                });
+                html += `</div>`;
+            });
+
+            if (!hasAny) {
+                html += `<div class="card"><div style="text-align:center; color:var(--text-soft); padding:15px 0;">目前未來兩週尚無排課紀錄喔！</div></div>`;
+            }
+
+            html += `<div style="font-size:13px; color:var(--text-soft); line-height:1.7; margin:4px 2px 16px;">
+                ・請於上課前一小時通知，距離上課不到 30 分鐘無法自行請假，請聯繫客服。<br>
+                ・同一時段請假超過兩次，將無法保留該時段預約。</div>
+                <button class="sv-btn" style="background:#FDFBF6; color:var(--coffee); border:2px solid var(--coffee);" onclick="location.href=location.pathname">回到學生專區</button></div>`;
+            box.innerHTML = html;
+        }
+
         // 👑 家長資料渲染 (從 getInit 拿到的結果直接用，不再另外 fetch)
         function renderStudentResult(result) {
+            if (LEAVE_MODE) { renderLeaveMode(result); return; }
             if (result.status === 'success' && result.data && result.data.length > 0) {
                 studentDataList = result.data;
                 renderTabs(); renderStudentData(0);
