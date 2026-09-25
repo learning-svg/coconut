@@ -592,6 +592,8 @@
         //    上課時間到了才出現，按下後 3 分鐘內不能再按 (後端也會再擋一次)
         const REMIND_COOLDOWN_MS = 3 * 60 * 1000;  // 按過之後等 3 分鐘
         let remindCooldown = {};                   // courseKey → 可以再按的時間
+        let remindUsed = {};                       // courseKey → 今天已經提醒幾次
+        const REMIND_MAX_PER_DAY = 3;              // 每堂課每天最多 3 次 (後端也會擋)
 
         function renderTodayTab() {
             const box = document.getElementById('t-tab-today');
@@ -603,20 +605,29 @@
             if (c.cancelled || !c.startTimeMs) return '';
             const now = Date.now();
             if (now < c.startTimeMs) return '';                        // 還沒開始 → 不顯示
+            const used = remindUsed[c.courseKey] || 0;
             const waitMs = (remindCooldown[c.courseKey] || 0) - now;
-            const waiting = waitMs > 0;
-            const label = waiting
-                ? `Sent · wait ${Math.ceil(waitMs / 60000)} min`
-                : '&#128276; Remind student';
-            return `<button onclick="sendRemind(${idx})" ${waiting ? 'disabled' : ''} style="width:100%;margin-top:12px;padding:11px;border-radius:12px;font-weight:700;font-size:14px;cursor:${waiting ? 'not-allowed' : 'pointer'};font-family:inherit;border:2px solid ${waiting ? 'var(--line)' : 'var(--blush)'};background:${waiting ? 'var(--paper)' : 'var(--blush)'};color:${waiting ? 'var(--text-soft)' : '#fff'};">${label}</button>`;
+            const reachedLimit = used >= REMIND_MAX_PER_DAY;
+            const waiting = !reachedLimit && waitMs > 0;
+            const disabled = reachedLimit || waiting;
+            const label = reachedLimit
+                ? `Limit reached (${REMIND_MAX_PER_DAY}/${REMIND_MAX_PER_DAY})`
+                : waiting
+                    ? `Sent ${used}/${REMIND_MAX_PER_DAY} · wait ${Math.ceil(waitMs / 60000)} min`
+                    : `&#128276; Remind student${used > 0 ? ` (${used}/${REMIND_MAX_PER_DAY})` : ''}`;
+            return `<button onclick="sendRemind(${idx})" ${disabled ? 'disabled' : ''} style="width:100%;margin-top:12px;padding:11px;border-radius:12px;font-weight:700;font-size:14px;cursor:${disabled ? 'not-allowed' : 'pointer'};font-family:inherit;border:2px solid ${disabled ? 'var(--line)' : 'var(--blush)'};background:${disabled ? 'var(--paper)' : 'var(--blush)'};color:${disabled ? 'var(--text-soft)' : '#fff'};">${label}</button>`;
         }
 
         async function sendRemind(idx) {
             const c = teacherData.today[idx];
             if (!c) return;
+            const nextTime = (remindUsed[c.courseKey] || 0) + 1;
+            const isFinal = nextTime >= REMIND_MAX_PER_DAY;
             const confirmed = await Swal.fire({
-                title: 'Remind student?',
-                text: `A LINE message will be sent to ${c.courseKey} asking them to join the class now.`,
+                title: isFinal ? 'Send final reminder?' : 'Remind student?',
+                text: isFinal
+                    ? `This is reminder ${nextTime} of ${REMIND_MAX_PER_DAY}. ${c.courseKey} will be told this class will be counted as taken.`
+                    : `A LINE message will be sent to ${c.courseKey} asking them to join the class now. (${nextTime}/${REMIND_MAX_PER_DAY})`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: 'var(--blush)',
@@ -631,11 +642,16 @@
                 const res = await fetch(`${WORKER_URL}?action=remindStudent&userId=${encodeURIComponent(currentUserId)}&courseKey=${encodeURIComponent(c.courseKey)}`);
                 const result = await res.json();
                 if (result.status === 'success') {
+                    remindUsed[c.courseKey] = result.sentToday || nextTime;
                     remindCooldown[c.courseKey] = Date.now() + REMIND_COOLDOWN_MS;
-                    Swal.fire('Reminder sent', result.message, 'success');
+                    Swal.fire(result.isFinal ? 'Final reminder sent' : 'Reminder sent', result.message, result.isFinal ? 'warning' : 'success');
                 } else if (result.status === 'cooldown') {
+                    if (result.sentToday) remindUsed[c.courseKey] = result.sentToday;
                     remindCooldown[c.courseKey] = Date.now() + (result.waitSec || 180) * 1000;
                     Swal.fire('Already sent', result.message, 'info');
+                } else if (result.status === 'limit') {
+                    remindUsed[c.courseKey] = result.sentToday || REMIND_MAX_PER_DAY;
+                    Swal.fire('Limit reached', result.message, 'info');
                 } else {
                     Swal.fire('Not sent', result.message || 'Please try again.', 'warning');
                 }
