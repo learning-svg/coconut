@@ -231,11 +231,25 @@
         let currentProgressIndex = 0;  // 👑 目前顯示第幾筆 (0=最近)
         let teacherData = null;
         // 👑 圖文選單「請假」入口：liff.line.me/<LIFF_ID>?view=leave → 直接開請假頁
-        const LEAVE_MODE = new URLSearchParams(window.location.search).get('view') === 'leave';
+        //    注意：LIFF 有時會先把參數包在 liff.state 裡，liff.init() 之後才還原，
+        //    所以要在 init 完成後才判斷，且兩種寫法都要認。
+        let LEAVE_MODE = false;
+        function detectLeaveMode() {
+            try {
+                const p = new URLSearchParams(window.location.search);
+                if (p.get('view') === 'leave') return true;
+                const state = p.get('liff.state');
+                if (state && decodeURIComponent(state).indexOf('view=leave') !== -1) return true;
+                if (window.location.href.indexOf('view%3Dleave') !== -1) return true;
+            } catch (e) {}
+            return false;
+        }
 
         async function initializeApp() {
             try {
+                LEAVE_MODE = detectLeaveMode();           // init 前先判斷一次 (liff.state 形式)
                 await liff.init({ liffId: LIFF_ID });
+                if (!LEAVE_MODE) LEAVE_MODE = detectLeaveMode(); // init 後網址已還原，再判斷一次
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 currentUserId = (await liff.getProfile()).userId;
                 const result = await apiGet('getInit');
