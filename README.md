@@ -133,7 +133,11 @@
 
     <div class="header" id="header" style="display: none;"><div class="tabs-container" id="tabs-container"></div></div>
 
+    <!-- 價格優惠 / 課程須知 分頁的內容 -->
+    <div class="content-container" id="info-content" style="display:none;"></div>
+
     <div class="content-container" id="main-content" style="display:none;">
+        <div id="student-switch" style="display:none; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:16px;"></div>
         <div class="student-summary"><h2 id="display-name">學生姓名</h2><div class="badge-pill" id="display-remaining">剩餘堂數：- 堂</div></div>
 
         <div class="cheer">
@@ -230,6 +234,7 @@
         let progressRecords = [];      // 👑 最近 N 筆進度紀錄
         let currentProgressIndex = 0;  // 👑 目前顯示第幾筆 (0=最近)
         let teacherData = null;
+        let agreedAtText = '';   // 課程須知同意時間 (後端回傳)
         // 👑 圖文選單「請假」入口：liff.line.me/<LIFF_ID>?view=leave → 直接開請假頁
         //    注意：LIFF 有時會先把參數包在 liff.state 裡，liff.init() 之後才還原，
         //    所以要在 init 完成後才判斷，且兩種寫法都要認。
@@ -260,6 +265,7 @@
         // 👑 依後端回傳的 role/status 分流到對應畫面
         function routeByResult(result) {
             const role = result.role;
+            if (result.agreedAt) agreedAtText = result.agreedAt;
             if (role === 'teacher') { renderTeacherResult(result); return; }
             if (role === 'refunded') { showRefundedBlock(); return; }
             if (role === 'needEmail') { showEmailRegister(result.nextView); return; }
@@ -345,20 +351,60 @@
             box.style.display = 'block';
         }
 
+        // 👑 課程須知條文 (同意頁與學生專區的「課程須知」分頁共用)
+        const COURSE_TERMS = [
+            "課程請假、改期、延後上課者，請於預定上課時間一小時前通知；課程預定時間開始後未通知者，即收取該堂課程全額費用。",
+            "同一上課時間請假超過(含)兩次者，將無法保留該時段預約，請重新告知預約課程。",
+            "本平台的課程內容和教材之相關檔案為通用教材，且平台保有完整著作權與主導權，課程可以經與平台溝通合意後微調；然高度客製化內容，請諮詢平台取得更一步報價。客製化內容，若超出可服務範圍，本平台有權利拒絕要求或終止契約。",
+            "課程退款項目為剩餘課程照比例退還，並酌收新臺幣300元的手續費用。",
+            "所有課程之使用期限為1年。如有特別需求，請盡早通知，可做展延。",
+            "目前任職、兼職或提供服務於其他線上英文教育平台者，應於購課前主動告知平台，平台得依實際課程服務及資訊安全需求進行評估，如隱匿、虛偽陳述者，平台有權解除契約。",
+            "學生不得將本平台教材、PPT、講義、課程架構、教學活動或教師私人相關資訊提供之其他內容，擅自影印、掃描、攝影或以其他方法「重製」講義及試卷內容；於課堂中擅自錄音、錄影，或將錄音錄影檔製作成光碟、數位檔案；將講義內容、筆記或錄音檔上傳至網路（如社群媒體、拍賣平台、雲端硬碟）進行「公開傳輸」或販售「散布」；將講義內容進行改寫、解構後另行編著為參考書等「改作」行為，或其他違反著作權法之行為。若有違反，本平台得終止契約，且毋庸退還剩餘課程費用，並要求學生另支付課程委任費用3倍之懲罰性違約金。"
+        ];
+
+        // 👑 價格與優惠內容 (價格頁與學生專區的「價格優惠」分頁共用)
+        function buildPricingHtml() {
+            return `<div class="sv-section-title">課程價格</div>
+                <div class="price-card">
+                    ${priceRow('體驗課程', '75元 / 25分鐘')}
+                    ${priceRow('ESL 課程', '310元 / 50分鐘')}
+                    ${priceRow('英檢證照', '330元 / 50分鐘')}
+                    ${priceRow('商業英文', '340元 / 50分鐘')}
+                    ${priceRow('多益課程', '380元 / 50分鐘')}
+                    ${priceRow('雅思課程', '440元 / 50分鐘', true)}
+                </div>
+                <div class="sv-section-title">優惠折扣</div>
+                <div class="price-card">
+                    ${priceRow('優惠方案 1', '10堂享 95折')}
+                    ${priceRow('優惠方案 2', '20堂享 9折')}
+                    ${priceRow('優惠方案 3', '30堂享 85折')}
+                    ${priceRow('優惠方案 4', '邀請好友折 100', true)}
+                </div>`;
+        }
+
+        // 👑 課程須知內容 (唯讀，不含勾選與同意按鈕)
+        function buildTermsHtml() {
+            const items = COURSE_TERMS.map((t, i) =>
+                `<div style="display:flex; gap:8px; margin-bottom:14px;"><span style="font-weight:700; color:var(--coffee); flex-shrink:0;">${i + 1}.</span><span style="font-size:13px; line-height:1.7; color:var(--coffee-deep);">${t}</span></div>`
+            ).join('');
+            const agreed = agreedAtText
+                ? `<div style="border:2px solid var(--leaf); background:#EEF2E4; border-radius:12px; padding:12px 14px; margin-bottom:12px; text-align:center;">
+                       <div style="font-size:13px; font-weight:700; color:#4F5D2F;">您已同意本課程須知</div>
+                       <div style="font-size:13px; color:var(--text-soft); margin-top:4px;">同意時間：${esc(agreedAtText)}</div>
+                   </div>`
+                : '';
+            return `<div class="sv-section-title">課程須知項目</div>
+                <div class="card">${items}</div>
+                ${agreed}
+                <div style="font-size:12px; color:var(--text-soft); text-align:center; margin-bottom:10px;">如對條款有疑問，請聯繫客服，謝謝您</div>`;
+        }
+
         // 👑 課程須知同意頁 (第一次登入、填完 email 後顯示)
         let agreementNextView = null;
         function showAgreementPage(nextView) {
             agreementNextView = nextView;
             document.getElementById('loading-screen').style.display = 'none';
-            const terms = [
-                "課程請假、改期、延後上課者，請於預定上課時間一小時前通知；課程預定時間開始後未通知者，即收取該堂課程全額費用。",
-                "同一上課時間請假超過(含)兩次者，將無法保留該時段預約，請重新告知預約課程。",
-                "本平台的課程內容和教材之相關檔案為通用教材，且平台保有完整著作權與主導權，課程可以經與平台溝通合意後微調；然高度客製化內容，請諮詢平台取得更一步報價。客製化內容，若超出可服務範圍，本平台有權利拒絕要求或終止契約。",
-                "課程退款項目為剩餘課程照比例退還，並酌收新臺幣300元的手續費用。",
-                "所有課程之使用期限為1年。如有特別需求，請盡早通知，可做展延。",
-                "目前任職、兼職或提供服務於其他線上英文教育平台者，應於購課前主動告知平台，平台得依實際課程服務及資訊安全需求進行評估，如隱匿、虛偽陳述者，平台有權解除契約。",
-                "學生不得將本平台教材、PPT、講義、課程架構、教學活動或教師私人相關資訊提供之其他內容，擅自影印、掃描、攝影或以其他方法「重製」講義及試卷內容；於課堂中擅自錄音、錄影，或將錄音錄影檔製作成光碟、數位檔案；將講義內容、筆記或錄音檔上傳至網路（如社群媒體、拍賣平台、雲端硬碟）進行「公開傳輸」或販售「散布」；將講義內容進行改寫、解構後另行編著為參考書等「改作」行為，或其他違反著作權法之行為。若有違反，本平台得終止契約，且毋庸退還剩餘課程費用，並要求學生另支付課程委任費用3倍之懲罰性違約金。"
-            ];
+            const terms = COURSE_TERMS;
             let itemsHtml = terms.map((t, i) =>
                 `<div style="display:flex; gap:8px; margin-bottom:14px;"><span style="font-weight:700; color:var(--coffee); flex-shrink:0;">${i+1}.</span><span style="font-size:13px; line-height:1.7; color:var(--coffee-deep);">${t}</span></div>`
             ).join('');
@@ -419,28 +465,16 @@
         }
 
         // 👑 價格 + 優惠頁 (Trial / 結訓)
+        // 👑 非正式學生 (體驗課 / 結訓 / 新好友)：只顯示「價格優惠」與「課程須知」兩個分頁
         function showPricingPage() {
             document.getElementById('loading-screen').style.display = 'none';
-            const box = document.getElementById('special-view');
+            document.getElementById('special-view').style.display = 'none';
+            document.getElementById('brand-bar').style.display = 'block';
+            document.getElementById('header').style.display = 'block';
+            renderTabs(false);
+            const box = document.getElementById('info-content');
+            box.innerHTML = buildPricingHtml();
             box.style.display = 'block';
-            box.innerHTML = `<div style="padding:20px 16px;">
-                <div style="text-align:center; font-size:20px; font-weight:700; color:#333; margin-bottom:16px;">💰 課程價格</div>
-                <div style="background:#FFF; border:1.5px solid var(--coffee); border-radius:12px; padding:16px; margin-bottom:20px;">
-                    ${priceRow('體驗課程', '75元 / 25分鐘')}
-                    ${priceRow('ESL 課程', '310元 / 50分鐘')}
-                    ${priceRow('英檢證照', '330元 / 50分鐘')}
-                    ${priceRow('商業英文', '340元 / 50分鐘')}
-                    ${priceRow('多益課程', '380元 / 50分鐘')}
-                    ${priceRow('雅思課程', '440元 / 50分鐘', true)}
-                </div>
-                <div style="text-align:center; font-size:20px; font-weight:700; color:#333; margin-bottom:16px;">🎁 優惠折扣</div>
-                <div style="background:#FFF; border:1.5px solid var(--coffee); border-radius:12px; padding:16px;">
-                    ${priceRow('優惠方案 1', '10堂享 95折')}
-                    ${priceRow('優惠方案 2', '20堂享 9折')}
-                    ${priceRow('優惠方案 3', '30堂享 85折')}
-                    ${priceRow('優惠方案 4', '邀請好友折 100', true)}
-                </div>
-            </div>`;
         }
         function priceRow(name, price, last) {
             return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; ${last ? '' : 'border-bottom:1px solid #EEE;'}">
@@ -521,7 +555,7 @@
             if (LEAVE_MODE) { renderLeaveMode(result); return; }
             if (result.status === 'success' && result.data && result.data.length > 0) {
                 studentDataList = result.data;
-                renderTabs(); renderStudentData(0);
+                renderTabs(true); renderStudentData(0);
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('special-view').style.display = 'none';
                 document.getElementById('header').style.display = 'block';
@@ -739,7 +773,7 @@
                 const result = await apiGet('getDashboard');
                 if (result.status === 'success' && result.data.length > 0) {
                     studentDataList = result.data;
-                    renderTabs(); renderStudentData(0);
+                    renderTabs(true); renderStudentData(0);
                     document.getElementById('loading-screen').style.display = 'none';
                     document.getElementById('header').style.display = 'block';
                     document.getElementById('main-content').style.display = 'block'; document.getElementById('brand-bar').style.display = 'block';
@@ -747,18 +781,55 @@
             } catch (err) { document.getElementById('loading-text').innerText = "連線失敗，請檢查網路或稍後再試。"; }
         }
 
-        function renderTabs() {
+        // 👑 分頁列：課程紀錄 / 價格優惠 / 課程須知
+        //    withRecord = false 時 (體驗課、結訓、新好友) 只有價格優惠與課程須知
+        function renderTabs(withRecord) {
             const container = document.getElementById('tabs-container'); container.innerHTML = '';
-            studentDataList.forEach((student, index) => {
+            const setActive = (tab) => {
+                container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            };
+            const showInfo = (builder) => {
+                const box = document.getElementById('info-content');
+                box.innerHTML = builder();
+                document.getElementById('main-content').style.display = 'none';
+                box.style.display = 'block';
+                window.scrollTo(0, 0);
+            };
+
+            const tabs = [];
+            if (withRecord !== false) {
+                tabs.push(['課程紀錄', () => {
+                    document.getElementById('info-content').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                    renderStudentData(currentTabIndex);
+                    window.scrollTo(0, 0);
+                }]);
+            }
+            tabs.push(['價格優惠', () => showInfo(buildPricingHtml)]);
+            tabs.push(['課程須知', () => showInfo(buildTermsHtml)]);
+
+            tabs.forEach(([name, onSelect], i) => {
                 const tab = document.createElement('div');
-                tab.className = `tab ${index === 0 ? 'active' : ''}`;
-                tab.innerText = `${student.studentName.split(' ')[0]} (${student.courseType})`;
-                tab.onclick = () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active'); renderStudentData(index);
-                };
+                tab.className = `tab ${i === 0 ? 'active' : ''}`;
+                tab.innerText = name;
+                tab.onclick = () => { setActive(tab); onSelect(); };
                 container.appendChild(tab);
             });
+        }
+
+        // 👑 同一家庭多位學生時，用膠囊按鈕在「課程紀錄」裡切換
+        function renderStudentSwitch() {
+            const box = document.getElementById('student-switch');
+            if (!box) return;
+            if (!studentDataList || studentDataList.length < 2) { box.style.display = 'none'; return; }
+            box.innerHTML = studentDataList.map((student, i) =>
+                `<span onclick="renderStudentData(${i})" style="cursor:pointer; padding:7px 14px; border-radius:16px; font-size:13px; font-weight:700; white-space:nowrap;
+                    border:2px solid ${i === currentTabIndex ? 'var(--coffee)' : 'var(--line)'};
+                    background:${i === currentTabIndex ? 'var(--coffee)' : '#FDFBF6'};
+                    color:${i === currentTabIndex ? '#FFFFFF' : 'var(--text-soft)'};">${esc(student.studentName.split(' ')[0])}（${esc(student.courseType)}）</span>`
+            ).join('');
+            box.style.display = 'flex';
         }
 
         // 👑 顯示目前索引的那筆進度紀錄 (教材/回饋/作業/日期)
@@ -835,6 +906,7 @@
 
         function renderStudentData(index) {
             currentTabIndex = index; const data = studentDataList[index];
+            renderStudentSwitch();
             document.getElementById('display-name').innerText = data.studentName;
             // 👑 顯示格式：已上 X / 購買 Y ・剩餘 Z 堂 (購買堂數為 0 時只顯示剩餘，避免出現 0/0)
             if (data.totalClasses > 0) {
