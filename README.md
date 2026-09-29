@@ -641,14 +641,19 @@
             if (now < c.startTimeMs) return '';                        // 還沒開始 → 不顯示
             const used = remindUsed[c.courseKey] || 0;
             const waitMs = (remindCooldown[c.courseKey] || 0) - now;
+            // 課程結束後鎖住按鈕，避免誤觸 (舊版 Worker 沒回 endTimeMs 時，以開始後 55 分鐘估算)
+            const endMs = c.endTimeMs || (c.startTimeMs + 55 * 60 * 1000);
+            const ended = now > endMs;
             const reachedLimit = used >= REMIND_MAX_PER_DAY;
-            const waiting = !reachedLimit && waitMs > 0;
-            const disabled = reachedLimit || waiting;
-            const label = reachedLimit
-                ? `Limit reached (${REMIND_MAX_PER_DAY}/${REMIND_MAX_PER_DAY})`
-                : waiting
-                    ? `Sent ${used}/${REMIND_MAX_PER_DAY} · wait ${Math.ceil(waitMs / 60000)} min`
-                    : `&#128276; Remind student${used > 0 ? ` (${used}/${REMIND_MAX_PER_DAY})` : ''}`;
+            const waiting = !ended && !reachedLimit && waitMs > 0;
+            const disabled = ended || reachedLimit || waiting;
+            const label = ended
+                ? '&#10003; Completed'
+                : reachedLimit
+                    ? `Limit reached (${REMIND_MAX_PER_DAY}/${REMIND_MAX_PER_DAY})`
+                    : waiting
+                        ? `Sent ${used}/${REMIND_MAX_PER_DAY} · wait ${Math.ceil(waitMs / 60000)} min`
+                        : `&#128276; Remind student${used > 0 ? ` (${used}/${REMIND_MAX_PER_DAY})` : ''}`;
             return `<button onclick="sendRemind(${idx})" ${disabled ? 'disabled' : ''} style="width:100%;margin-top:12px;padding:11px;border-radius:12px;font-weight:700;font-size:14px;cursor:${disabled ? 'not-allowed' : 'pointer'};font-family:inherit;border:2px solid ${disabled ? 'var(--line)' : 'var(--blush)'};background:${disabled ? 'var(--paper)' : 'var(--blush)'};color:${disabled ? 'var(--text-soft)' : '#fff'};">${label}</button>`;
         }
 
@@ -683,6 +688,8 @@
                     if (result.sentToday) remindUsed[c.courseKey] = result.sentToday;
                     remindCooldown[c.courseKey] = Date.now() + (result.waitSec || 180) * 1000;
                     Swal.fire('Already sent', result.message, 'info');
+                } else if (result.status === 'ended') {
+                    Swal.fire('Class ended', result.message, 'info');
                 } else if (result.status === 'limit') {
                     remindUsed[c.courseKey] = result.sentToday || REMIND_MAX_PER_DAY;
                     Swal.fire('Limit reached', result.message, 'info');
