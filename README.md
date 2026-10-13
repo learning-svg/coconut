@@ -706,12 +706,13 @@
             if (!list || list.length === 0) return `<div style="text-align:center;color:#6c757d;padding:20px 0;">${emptyMsg}</div>`;
             return list.map((c, idx) => {
                 if (c.cancelled) {
-                    return `<div class="card" style="background:#F1EFE8;border-color:#B4B2A9;opacity:0.75;">
+                    return `<div class="card" style="background:#F1EFE8;border-color:#B4B2A9;opacity:0.85;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                             <div style="font-size:15px;font-weight:bold;color:#5F5E5A;text-decoration:line-through;">${esc(c.courseKey)}</div>
                             <span style="padding:2px 8px;background:#F7C1C1;border-radius:6px;font-size:11px;font-weight:bold;color:#791F1F;">Cancelled</span>
                         </div>
                         <div style="font-size:13px;color:#5F5E5A;text-decoration:line-through;">${esc(c.timeStr)}</div>
+                        ${c.leaveReason ? `<div style="margin-top:8px;padding:8px 10px;background:#FBF0E4;border:1px solid var(--blush);border-radius:8px;font-size:13px;color:#7A4A2B;">&#128221; Reason: ${esc(c.leaveReason)}</div>` : ''}
                     </div>`;
                 }
                 return `<div class="card">
@@ -963,15 +964,29 @@
         }
 
         function handleCancelClass(eventId, startTimeMs, buttonElement) {
-            Swal.fire({ title: '確認請假？', icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--blush)', confirmButtonText: 'OK', cancelButtonText: '先不要' }).then(async (result) => {
+            // 👑 請假要填原因，系統會翻成英文讓老師看得懂
+            Swal.fire({
+                title: '申請請假',
+                input: 'textarea',
+                inputLabel: '請簡短說明請假原因',
+                inputPlaceholder: '例如：身體不舒服、學校活動、家庭因素',
+                inputAttributes: { maxlength: 100 },
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--blush)',
+                confirmButtonText: '送出請假',
+                cancelButtonText: '先不要',
+                inputValidator: (value) => (!value || !value.trim()) ? '請填寫請假原因' : undefined
+            }).then(async (result) => {
                 if (result.isConfirmed) {
+                    const reason = (result.value || '').trim();
                     buttonElement.innerText = '處理中...'; buttonElement.disabled = true;
                     try {
                         // 👑 改用 POST 傳遞 (原本用 GET，userId/eventId 會留在網址列與伺服器 log 中)
                         const response = await fetch(GAS_WEB_APP_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            body: JSON.stringify({ action: 'liffCancel', userId: currentUserId, eventId: eventId, startTimeMs: startTimeMs })
+                            body: JSON.stringify({ action: 'liffCancel', userId: currentUserId, eventId: eventId, startTimeMs: startTimeMs, reason: reason })
                         });
                         const resultJson = await response.json();
                         if (resultJson.status === 'success') { Swal.fire('成功！', '課程已順利請假。', 'success'); buttonElement.innerText = '已請假'; }
