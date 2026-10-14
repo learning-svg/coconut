@@ -522,7 +522,14 @@
                 const classes = student.upcomingClasses || [];
                 if (classes.length === 0) return;
                 hasAny = true;
+                const leaves = Number(student.leavesThisMonth) || 0;
                 html += `<div class="card"><h3 class="card-title">${esc(student.studentName)}</h3>`;
+                if (leaves >= 2) {
+                    html += `<div style="background:#FBF0E4; border:2px solid var(--blush); border-radius:12px; padding:12px 14px; margin-bottom:12px;">
+                        <div style="font-size:14px; font-weight:700; color:#7A4A2B; margin-bottom:4px;">本月已請假 ${leaves} 次</div>
+                        <div style="font-size:13px; color:#7A4A2B; line-height:1.6;">同一時段連續兩週請假，將無法保留該時段預約。<br>如需保留原本的上課時間，請告知客服，謝謝您</div>
+                    </div>`;
+                }
                 classes.forEach(course => {
                     const line = `${course.dateStr}（${course.weekday}）${course.timeStr}`;
                     if (course.cancelled) {
@@ -545,7 +552,7 @@
 
             html += `<div style="font-size:13px; color:var(--text-soft); line-height:1.7; margin:4px 2px 16px;">
                 ・請於上課前一小時通知，距離上課不到 30 分鐘無法自行請假，請聯繫客服。<br>
-                ・同一時段請假超過兩次，將無法保留該時段預約。</div>
+                ・同一時段連續兩週請假，將無法保留該時段預約；如需保留原上課時間，請告知客服。</div>
                 <button class="sv-btn" style="background:#FDFBF6; color:var(--coffee); border:2px solid var(--coffee);" onclick="location.href=location.pathname">回到學生專區</button></div>`;
             box.innerHTML = html;
         }
