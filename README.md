@@ -271,7 +271,7 @@
             if (role === 'needEmail') { showEmailRegister(result.nextView); return; }
             if (role === 'needAgreement') { showAgreementPage(result.nextView); return; }
             if (role === 'pricing') { showPricingPage(); return; }
-            if (role === 'booking') { showBookingPage(); return; }
+            if (role === 'booking') { showTermsPage(); return; }   // 👑 Memo 空白 / 未建檔 → 課程須知
             // role === 'student'
             renderStudentResult(result);
         }
@@ -452,7 +452,7 @@
                     } else if (agreementNextView === 'pricing') {
                         showPricingPage();
                     } else {
-                        showBookingPage();
+                        showTermsPage();
                     }
                 } else {
                     errEl.style.display = 'block'; errEl.innerText = result.message || '儲存失敗，請重試';
@@ -483,7 +483,20 @@
             </div>`;
         }
 
-        // 👑 預約體驗頁 (第二階段，先放預留位置)
+        // 👑 2026-10-25：Memo 空白 / 未建檔的新好友 → 改顯示「課程須知」
+        //    分頁列一樣是「價格優惠｜課程須知」，預設停在課程須知
+        function showTermsPage() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('special-view').style.display = 'none';
+            document.getElementById('brand-bar').style.display = 'block';
+            document.getElementById('header').style.display = 'block';
+            renderTabs(false, '課程須知');
+            const box = document.getElementById('info-content');
+            box.innerHTML = buildTermsHtml();
+            box.style.display = 'block';
+        }
+
+        // 👑 預約體驗頁 (目前未使用，保留供日後啟用)
         function showBookingPage() {
             document.getElementById('loading-screen').style.display = 'none';
             const box = document.getElementById('special-view');
@@ -798,7 +811,7 @@
 
         // 👑 分頁列：課程紀錄 / 價格優惠 / 課程須知
         //    withRecord = false 時 (體驗課、結訓、新好友) 只有價格優惠與課程須知
-        function renderTabs(withRecord) {
+        function renderTabs(withRecord, defaultTabName) {
             const container = document.getElementById('tabs-container'); container.innerHTML = '';
             const setActive = (tab) => {
                 container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -824,9 +837,15 @@
             tabs.push(['價格優惠', () => showInfo(buildPricingHtml)]);
             tabs.push(['課程須知', () => showInfo(buildTermsHtml)]);
 
+            // 👑 預設選取哪一個分頁：有指定就用指定的，沒有就第一個
+            let activeIndex = 0;
+            if (defaultTabName) {
+                const idx = tabs.findIndex(([name]) => name === defaultTabName);
+                if (idx !== -1) activeIndex = idx;
+            }
             tabs.forEach(([name, onSelect], i) => {
                 const tab = document.createElement('div');
-                tab.className = `tab ${i === 0 ? 'active' : ''}`;
+                tab.className = `tab ${i === activeIndex ? 'active' : ''}`;
                 tab.innerText = name;
                 tab.onclick = () => { setActive(tab); onSelect(); };
                 container.appendChild(tab);
